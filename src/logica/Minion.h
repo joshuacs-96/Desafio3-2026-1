@@ -18,6 +18,7 @@ public:
     Ruido generarRisaAutomatica();
 
     QPointF obtenerPosicion() const;
+    void establecerPosicion(const QPointF& nuevaPosicion);
     int obtenerEnergia() const;
     int obtenerVidas() const;
     bool tieneBananaActiva() const;

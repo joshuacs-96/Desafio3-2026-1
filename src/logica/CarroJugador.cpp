@@ -44,6 +44,12 @@ void CarroJugador::rebotar() {
     velocidad *= -coeficienteRebote;
 }
 
+void CarroJugador::detener() {
+    velocidad = QPointF(0.0, 0.0);
+    derrapando = false;
+    tiempoDerrapeRestante = 0.0;
+}
+
 void CarroJugador::actualizar(double deltaTiempo) {
     if (derrapando) {
         double factorFriccion = std::exp(-muAceite * deltaTiempo);
@@ -56,6 +62,18 @@ void CarroJugador::actualizar(double deltaTiempo) {
     }
 
     posicion += velocidad * deltaTiempo;
+}
+
+void CarroJugador::establecerPosicion(const QPointF& nuevaPosicion) {
+    posicion = nuevaPosicion;
+}
+
+void CarroJugador::establecerIntegridad(double nuevaIntegridad) {
+    integridad = std::max(0.0, nuevaIntegridad);
+}
+
+void CarroJugador::establecerBotinActual(int nuevoBotin) {
+    botinActual = std::max(0, nuevoBotin);
 }
 
 QPointF CarroJugador::obtenerPosicion() const {
@@ -72,4 +90,8 @@ int CarroJugador::obtenerBotinActual() const {
 
 bool CarroJugador::estaDerrapando() const {
     return derrapando;
+}
+
+bool CarroJugador::estaDestruido() const {
+    return integridad <= 0.0;
 }

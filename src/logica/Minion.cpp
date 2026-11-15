@@ -72,6 +72,10 @@ QPointF Minion::obtenerPosicion() const {
     return posicion;
 }
 
+void Minion::establecerPosicion(const QPointF& nuevaPosicion) {
+    posicion = nuevaPosicion;
+}
+
 int Minion::obtenerEnergia() const {
     return energia;
 }

@@ -1,32 +1,29 @@
 #include <QCoreApplication>
 #include <QDebug>
 
-#include "logica/CarroJugador.h"
-#include "logica/Minion.h"
-#include "logica/Obstaculo.h"
+#include "logica/Nivel1Banco.h"
+#include "logica/Nivel2Fuga.h"
 
 int main(int argc, char *argv[]) {
     QCoreApplication aplicacion(argc, argv);
 
-    Minion kevin;
-    kevin.comerBanana();
-    kevin.actualizar(3.0);
+    Nivel1Banco nivelBanco;
+    nivelBanco.usarBanana();
+    nivelBanco.moverMinion(QPointF(1.0, 0.0), 1.0);
+    nivelBanco.danarPuerta(100.0);
+    nivelBanco.recogerBotin(3);
+    nivelBanco.actualizar(0.1);
 
-    if (kevin.hayRisaPendiente()) {
-        Ruido risa = kevin.generarRisaAutomatica();
-        qDebug() << "El Minion genera ruido:" << risa.tipo;
-    }
+    qDebug() << "Bóveda abierta:" << nivelBanco.obtenerBoveda().estaAbierta();
+    qDebug() << "Botín recolectado:" << nivelBanco.obtenerBotinRecolectado();
+    qDebug() << "Nivel completado:" << nivelBanco.estaCompletado();
 
-    CarroJugador carro;
-    carro.acelerar(80.0);
-    carro.actualizar(1.0);
+    Nivel2Fuga nivelFuga(true);
+    nivelFuga.acelerarCarro(80.0);
+    nivelFuga.actualizar(1.0);
 
-    qDebug() << "Posición del carro:" << carro.obtenerPosicion();
-
-    Obstaculo aceite("Aceite", QPointF(0.0, 0.0), 0, 2.0);
-    aceite.aplicarEfecto(carro);
-
-    qDebug() << "El carro derrapa:" << carro.estaDerrapando();
+    qDebug() << "Nivel de fuga difícil:" << nivelFuga.estaEnModoDificil();
+    qDebug() << "Tiempo restante:" << nivelFuga.obtenerTiempoRestante();
 
     return 0;
 }

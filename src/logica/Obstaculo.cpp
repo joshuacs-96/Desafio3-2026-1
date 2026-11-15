@@ -10,19 +10,37 @@ Obstaculo::Obstaculo(const QString& tipo,
     : posicion(posicion),
       tipo(tipo),
       dano(dano),
-      factorVelocidad(factorVelocidad) {
+      factorVelocidad(factorVelocidad),
+      radioColision(28.0),
+      activo(true) {
 }
 
-void Obstaculo::aplicarEfecto(Minion& minion) const {
+void Obstaculo::aplicarEfecto(Minion& minion) {
     minion.recibirDanio(dano);
 }
 
-void Obstaculo::aplicarEfecto(CarroJugador& carro) const {
+void Obstaculo::aplicarEfecto(CarroJugador& carro) {
+    if (!activo) {
+        return;
+    }
+
     carro.recibirDanio(dano);
 
     if (tipo == "Aceite") {
         carro.activarDerrape(factorVelocidad);
+        return;
     }
+
+    if (tipo == "Barrera") {
+        carro.rebotar();
+        carro.perderBotin(1);
+    }
+
+    activo = false;
+}
+
+void Obstaculo::moverVerticalmente(double desplazamiento) {
+    posicion.ry() += desplazamiento;
 }
 
 QString Obstaculo::obtenerTipo() const {
@@ -31,4 +49,12 @@ QString Obstaculo::obtenerTipo() const {
 
 QPointF Obstaculo::obtenerPosicion() const {
     return posicion;
+}
+
+double Obstaculo::obtenerRadioColision() const {
+    return radioColision;
+}
+
+bool Obstaculo::estaActivo() const {
+    return activo;
 }
