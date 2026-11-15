@@ -9,6 +9,11 @@ TARGET = MinionsRoboDelSiglo
 INCLUDEPATH += src
 
 SOURCES += \
+    src/logica/Boveda.cpp \
+    src/logica/CamaraSeguridad.cpp \
+    src/logica/CarroPolicia.cpp \
+    src/logica/Escalera.cpp \
+    src/logica/Nivel2Fuga.cpp \
     src/main.cpp \
     src/logica/Minion.cpp \
     src/logica/CarroJugador.cpp \
@@ -23,6 +28,11 @@ SOURCES += \
     src/logica/Nivel2Fuga.cpp
 
 HEADERS += \
+    src/logica/Boveda.h \
+    src/logica/CamaraSeguridad.h \
+    src/logica/CarroPolicia.h \
+    src/logica/Escalera.h \
+    src/logica/Nivel2Fuga.h \
     src/logica/Ruido.h \
     src/logica/Minion.h \
     src/logica/CarroJugador.h \
