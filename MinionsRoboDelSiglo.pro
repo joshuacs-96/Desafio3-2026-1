@@ -10,22 +10,12 @@ INCLUDEPATH += src
 
 SOURCES += \
     src/main.cpp \
-    src/logica/TiposJuego.cpp \
-    src/logica/Entidad.cpp \
-    src/logica/MovimientoOscilatorio.cpp \
-    src/logica/MovimientoParabolico.cpp \
-    src/logica/MovimientoAmortiguado.cpp \
-    src/logica/Personaje.cpp \
-    src/logica/CarroFuga.cpp \
-    src/logica/Objeto.cpp
+    src/logica/Minion.cpp \
+    src/logica/CarroJugador.cpp \
+    src/logica/Obstaculo.cpp
 
 HEADERS += \
-    src/logica/TiposJuego.h \
-    src/logica/Entidad.h \
-    src/logica/Fisica.h \
-    src/logica/MovimientoOscilatorio.h \
-    src/logica/MovimientoParabolico.h \
-    src/logica/MovimientoAmortiguado.h \
-    src/logica/Personaje.h \
-    src/logica/CarroFuga.h \
-    src/logica/Objeto.h
+    src/logica/Ruido.h \
+    src/logica/Minion.h \
+    src/logica/CarroJugador.h \
+    src/logica/Obstaculo.h

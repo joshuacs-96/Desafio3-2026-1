@@ -1,0 +1,15 @@
+# Archivos generados por Qt Creator y qmake
+build/
+Clases anteriores/
+.qtcreator/
+*.pro.user
+*.pro.user.*
+Makefile*
+
+# Archivos generados durante la compilación
+debug/
+release/
+*.o
+*.obj
+*.exe
+*.pdb
