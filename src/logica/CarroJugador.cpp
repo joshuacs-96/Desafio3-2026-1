@@ -60,6 +60,8 @@ void CarroJugador::actualizar(double deltaTiempo) {
             derrapando = false;
         }
     }
+    velocidad.setY(velocidad.y() * std::exp(-1.5 * deltaTiempo));
+    velocidad.setY(std::clamp(velocidad.y(), -220.0, 220.0));
 
     posicion += velocidad * deltaTiempo;
 }
