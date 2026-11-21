@@ -1,6 +1,6 @@
 #include "Nivel1Banco.h"
-
 #include <QLineF>
+#include <algorithm>
 
 Nivel1Banco::Nivel1Banco()
     : boveda(100.0, 3),
@@ -58,9 +58,11 @@ void Nivel1Banco::actualizar(double deltaTiempo) {
 }
 
 void Nivel1Banco::moverMinion(const QPointF& direccion, double deltaTiempo) {
-    if (!completado && !perdido) {
-        minion.mover(direccion, deltaTiempo);
-    }
+    if (completado || perdido) return;
+    minion.mover(direccion, deltaTiempo);
+    QPointF p = minion.obtenerPosicion();
+    p.setX(std::clamp(p.x(), 10.0, 390.0));
+    minion.establecerPosicion(p);
 }
 
 void Nivel1Banco::danarPuerta(double dano) {
@@ -93,6 +95,10 @@ const Minion& Nivel1Banco::obtenerMinion() const {
 
 const Boveda& Nivel1Banco::obtenerBoveda() const {
     return boveda;
+}
+
+const CamaraSeguridad& Nivel1Banco::obtenerCamara() const {
+    return camara;
 }
 
 const GuardiaCentinela& Nivel1Banco::obtenerGuardia() const {

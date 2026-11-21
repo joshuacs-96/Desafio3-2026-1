@@ -55,3 +55,15 @@ bool CamaraSeguridad::detecta(const Minion& minion) const {
 double CamaraSeguridad::obtenerAnguloActual() const {
     return anguloActual;
 }
+
+QPointF CamaraSeguridad::obtenerPosicion() const {
+    return posicion;
+}
+
+double CamaraSeguridad::obtenerAlcance() const {
+    return alcance;
+}
+
+double CamaraSeguridad::obtenerAperturaCono() const {
+    return aperturaCono;
+}

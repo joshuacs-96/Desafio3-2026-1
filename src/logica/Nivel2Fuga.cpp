@@ -1,6 +1,7 @@
 #include "Nivel2Fuga.h"
 
 #include <QLineF>
+#include <algorithm>
 
 Nivel2Fuga::Nivel2Fuga(bool modoDificil)
     : carroPolicia(QPointF(230.0, -180.0), 70.0, 3.0),
@@ -35,6 +36,12 @@ void Nivel2Fuga::actualizar(double deltaTiempo) {
     }
 
     carroJugador.actualizar(deltaTiempo);
+
+    QPointF p = carroJugador.obtenerPosicion();
+    p.setX(std::clamp(p.x(), 50.0, 350.0));
+    p.setY(std::max(p.y(), 120.0));
+    carroJugador.establecerPosicion(p);
+
     desplazarPeligros(deltaTiempo);
     carroPolicia.actualizar(carroJugador, deltaTiempo);
     verificarColisiones();
@@ -84,6 +91,14 @@ double Nivel2Fuga::obtenerTiempoRestante() const {
 
 bool Nivel2Fuga::estaEnModoDificil() const {
     return modoDificil;
+}
+
+const QVector<Obstaculo>& Nivel2Fuga::obtenerObstaculos() const {
+    return obstaculos;
+}
+
+double Nivel2Fuga::obtenerVelocidadScroll() const {
+    return velocidadScroll;
 }
 
 void Nivel2Fuga::configurarDificultad() {

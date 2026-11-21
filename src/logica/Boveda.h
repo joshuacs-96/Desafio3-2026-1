@@ -8,9 +8,11 @@ public:
     bool estaAbierta() const;
     double obtenerResistencia() const;
     int obtenerBotinMinimo() const;
+    double obtenerResistenciaMaxima() const;
 
 private:
     double resistencia;
     bool abierta;
     int botinMinimo;
+    double resistenciaMaxima;
 };

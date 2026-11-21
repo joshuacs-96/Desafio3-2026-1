@@ -5,7 +5,8 @@
 Boveda::Boveda(double resistenciaInicial, int botinMinimo)
     : resistencia(resistenciaInicial),
     abierta(false),
-    botinMinimo(botinMinimo) {
+    botinMinimo(botinMinimo),
+    resistenciaMaxima(resistenciaInicial){
 }
 
 void Boveda::recibirDanio(double dano) {
@@ -27,4 +28,8 @@ double Boveda::obtenerResistencia() const {
 
 int Boveda::obtenerBotinMinimo() const {
     return botinMinimo;
+}
+
+double Boveda::obtenerResistenciaMaxima() const {
+    return resistenciaMaxima;
 }

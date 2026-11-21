@@ -24,6 +24,7 @@ public:
 
     const Minion& obtenerMinion() const;
     const Boveda& obtenerBoveda() const;
+    const CamaraSeguridad& obtenerCamara() const;
     const GuardiaCentinela& obtenerGuardia() const;
     int obtenerBotinRecolectado() const;
     QString obtenerZonaActual() const;
