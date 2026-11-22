@@ -18,12 +18,21 @@ public:
     Ruido generarRisaAutomatica();
 
     QPointF obtenerPosicion() const;
+    QPointF obtenerPosicionSuelo() const;     // posición sin contar la altura del salto
     void establecerPosicion(const QPointF& nuevaPosicion);
     int obtenerEnergia() const;
     int obtenerVidas() const;
     bool tieneBananaActiva() const;
+    bool estaSaltando() const;
+    void iniciarEscalera(const QPointF& destino);
+    bool estaEnEscalera() const;
+    void limitarHorizontal(double minimo, double maximo);
+    double obtenerVelocidadVertical() const;  // > 0 subiendo, < 0 cayendo
 
 private:
+    void actualizarSalto(double deltaTiempo);
+    void actualizarEscalera(double deltaTiempo);
+
     QPointF posicion;
     QPointF velocidad;
     int energia;
@@ -33,4 +42,12 @@ private:
     double duracionBananaRestante;
     double tiempoHastaSiguienteRisa;
     double velocidadBase;
+    bool enSalto;
+    double tiempoSalto;
+    double ySuelo;
+    double velocidadSaltoInicial;
+    double gravedad;
+    bool escalando;
+    QPointF destinoEscalera;
+    double velocidadEscalera;
 };

@@ -37,6 +37,7 @@ void Nivel2Fuga::actualizar(double deltaTiempo) {
 
     carroJugador.actualizar(deltaTiempo);
 
+    // el carro no se sale de la calzada
     QPointF p = carroJugador.obtenerPosicion();
     p.setX(std::clamp(p.x(), 50.0, 350.0));
     p.setY(std::max(p.y(), 120.0));
@@ -121,13 +122,12 @@ void Nivel2Fuga::configurarDificultad() {
 void Nivel2Fuga::desplazarPeligros(double deltaTiempo) {
     double desplazamiento = velocidadScroll * deltaTiempo;
 
-    carroPolicia.moverVerticalmente(desplazamiento);
+    carroPolicia.moverHorizontalmente(desplazamiento);
 
     for (Obstaculo& obstaculo : obstaculos) {
-        obstaculo.moverVerticalmente(desplazamiento);
+        obstaculo.moverHorizontalmente(-desplazamiento);
     }
 }
-
 void Nivel2Fuga::verificarColisiones() {
     for (Obstaculo& obstaculo : obstaculos) {
         if (!obstaculo.estaActivo()) {

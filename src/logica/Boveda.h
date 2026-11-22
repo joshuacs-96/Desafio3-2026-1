@@ -7,8 +7,8 @@ public:
     void recibirDanio(double dano);
     bool estaAbierta() const;
     double obtenerResistencia() const;
-    int obtenerBotinMinimo() const;
     double obtenerResistenciaMaxima() const;
+    int obtenerBotinMinimo() const;
 
 private:
     double resistencia;

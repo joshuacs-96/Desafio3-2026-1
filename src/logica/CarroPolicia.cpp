@@ -30,6 +30,10 @@ void CarroPolicia::moverVerticalmente(double desplazamiento) {
     posicion.ry() += desplazamiento;
 }
 
+void CarroPolicia::moverHorizontalmente(double desplazamiento) {
+    posicion.rx() += desplazamiento;
+}
+
 void CarroPolicia::establecerPosicion(const QPointF& nuevaPosicion) {
     posicion = nuevaPosicion;
 }

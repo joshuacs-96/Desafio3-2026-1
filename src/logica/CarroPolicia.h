@@ -12,6 +12,7 @@ public:
 
     void actualizar(const CarroJugador& carroJugador, double deltaTiempo);
     void moverVerticalmente(double desplazamiento);
+    void moverHorizontalmente(double desplazamiento);
     void establecerPosicion(const QPointF& nuevaPosicion);
     void reiniciarTiempoCerca();
     void configurarSensor(double nuevoRadio, double nuevoTiempoMaximo);
