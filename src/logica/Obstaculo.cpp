@@ -43,6 +43,10 @@ void Obstaculo::moverVerticalmente(double desplazamiento) {
     posicion.ry() += desplazamiento;
 }
 
+void Obstaculo::moverHorizontalmente(double desplazamiento) {
+    posicion.rx() += desplazamiento;
+}
+
 QString Obstaculo::obtenerTipo() const {
     return tipo;
 }

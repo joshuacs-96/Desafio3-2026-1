@@ -61,9 +61,12 @@ void CarroJugador::actualizar(double deltaTiempo) {
         }
     }
 
+    // roce con la vía: sin esto la velocidad vertical crece sin límite
+    velocidad.setY(velocidad.y() * std::exp(-1.5 * deltaTiempo));
+    velocidad.setY(std::clamp(velocidad.y(), -220.0, 220.0));
+
     posicion += velocidad * deltaTiempo;
 }
-
 void CarroJugador::establecerPosicion(const QPointF& nuevaPosicion) {
     posicion = nuevaPosicion;
 }

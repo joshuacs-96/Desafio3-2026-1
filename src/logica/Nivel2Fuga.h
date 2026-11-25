@@ -22,6 +22,8 @@ public:
     const CarroPolicia& obtenerCarroPolicia() const;
     double obtenerTiempoRestante() const;
     bool estaEnModoDificil() const;
+    const QVector<Obstaculo>& obtenerObstaculos() const;
+    double obtenerVelocidadScroll() const;
 
 private:
     void configurarDificultad();

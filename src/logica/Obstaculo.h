@@ -13,6 +13,7 @@ public:
     void aplicarEfecto(Minion& minion);
     void aplicarEfecto(CarroJugador& carro);
     void moverVerticalmente(double desplazamiento);
+    void moverHorizontalmente(double desplazamiento);
 
     QString obtenerTipo() const;
     QPointF obtenerPosicion() const;

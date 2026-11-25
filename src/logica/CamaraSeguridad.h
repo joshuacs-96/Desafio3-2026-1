@@ -16,6 +16,9 @@ public:
     bool detecta(const Minion& minion) const;
 
     double obtenerAnguloActual() const;
+    QPointF obtenerPosicion() const;
+    double obtenerAlcance() const;
+    double obtenerAperturaCono() const;
 
 private:
     QPointF posicion;
