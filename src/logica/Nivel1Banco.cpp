@@ -1,9 +1,10 @@
 #include "Nivel1Banco.h"
 
 #include <QLineF>
+#include <cmath>
 
 namespace {
-constexpr double RADIO_ESCALERA = 30.0;
+constexpr double RADIO_ESCALERA = 15.0;
 constexpr double RADIO_SALIDA = 30.0;
 constexpr double RADIO_RECOGER = 22.0;
 
@@ -25,7 +26,8 @@ Nivel1Banco::Nivel1Banco()
     camara(QPointF(265.0, 10.0), 180.0, 45.0, 1.5, 180.0),
     guardia(INICIO_GUARDIA, 260.0),
     botinRecolectado(0),
-    radioCaptura(28.0) {
+    radioCaptura(28.0),
+    laserActivado(false){
     edificio.configurar({PISO_Y[0], PISO_Y[1], PISO_Y[2]}, {ESCALERA_X[0], ESCALERA_X[1]});
     guardia.establecerEdificio(&edificio);
     iniciar();
@@ -34,6 +36,7 @@ Nivel1Banco::Nivel1Banco()
 void Nivel1Banco::iniciar() {
     completado = false;
     perdido = false;
+    laserActivado = false;
     botinRecolectado = 0;
 
     minion.establecerPosicion(INICIO_MINION);
@@ -57,11 +60,12 @@ void Nivel1Banco::iniciar() {
 }
 
 void Nivel1Banco::actualizar(double deltaTiempo) {
-    if (completado || perdido) {
-        return;
-    }
+    if (completado || perdido) return;
 
     minion.actualizar(deltaTiempo);
+
+    verificarLaser();
+
     camara.actualizar(deltaTiempo);
     recogerItemsCercanos();
 
@@ -174,6 +178,118 @@ bool Nivel1Banco::puedeEscapar() const {
 
 void Nivel1Banco::procesarRuido(const Ruido& ruido) {
     guardia.percibir(ruido.posicion, ruido.intensidad);
+}
+
+void Nivel1Banco::verificarLaser() {
+
+    const QPointF posicion = minion.obtenerPosicion();
+    const QPointF posicionSuelo = minion.obtenerPosicionSuelo();
+
+    // Datos de los rayos: X, piso y altura del rayo.
+    struct PosicionLaser {
+        double x;
+        double pisoY;
+        double altura;
+    };
+
+    const PosicionLaser posicionesLaser[] = {
+
+    // PRIMER PISO
+    {90.0, 305.597, 0.0},
+        {110.0, 305.597, 0.0},
+        {140.0, 305.597, 48.0},
+        {160.0, 305.597, 48.0},
+        {185.0, 305.597, 0.0},
+        {205.0, 305.597, 0.0},
+
+        // SEGUNDO PISO
+        {90.0, 206.654, 0.0},
+        {110.0, 206.654, 0.0},
+        {140.0, 206.654, 48.0},
+        {160.0, 206.654, 48.0},
+        {185.0, 206.654, 0.0},
+        {205.0, 206.654, 0.0}
+};
+
+bool hayContacto = false;
+
+// No detectar rayos mientras utiliza una escalera.
+if (minion.estaEnEscalera()) {
+    laserActivado = false;
+    return;
+}
+
+const double alturaSalto =
+    posicionSuelo.y() - posicion.y();
+
+// Altura aproximada del cuerpo del Minion.
+const double alturaCuerpo = 42.0;
+
+for (const PosicionLaser& dato : posicionesLaser) {
+
+    // Comprobar que está en el piso correspondiente.
+    const bool mismoPiso =
+        std::abs(posicionSuelo.y() - dato.pisoY) < 8.0;
+
+    if (!mismoPiso) {
+        continue;
+    }
+
+    // Comprobar la posición horizontal.
+    const bool estaEnHorizontal =
+        std::abs(posicion.x() - dato.x) <= 3.0;
+
+    if (!estaEnHorizontal) {
+        continue;
+    }
+
+    // RAYOS BAJOS:
+    // Se deben superar saltando por encima.
+    if (dato.altura == 0.0) {
+
+        if (alturaSalto < 12.0) {
+            hayContacto = true;
+            break;
+        }
+    }
+
+    // RAYOS ELEVADOS:
+    // Caminando por debajo no pasa nada.
+    // Si el cuerpo del Minion alcanza el rayo al saltar,
+    // se activa la alarma.
+    else {
+
+        const bool tocaRayoElevado =
+            minion.estaSaltando() &&
+            alturaSalto + alturaCuerpo >= dato.altura - 2.0 &&
+            alturaSalto <= dato.altura + 2.0;
+
+        if (tocaRayoElevado) {
+            hayContacto = true;
+            break;
+        }
+    }
+}
+
+// Activar la alarma una sola vez por contacto.
+if (hayContacto && !laserActivado) {
+
+    laserActivado = true;
+
+    Ruido alarma {
+        "Alarma de laser",
+        posicion,
+        10.0,
+        1.0
+    };
+
+    procesarRuido(alarma);
+}
+
+// Permitir una nueva alarma después de salir de los rayos.
+if (!hayContacto) {
+    laserActivado = false;
+}
 }
 
 void Nivel1Banco::recogerItemsCercanos() {

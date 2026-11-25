@@ -31,15 +31,15 @@ constexpr bool DIBUJAR_ESCALERAS = true;
 constexpr double ANCHO_ESCALERA = 70.0;
 
 // Tamaño de cada sprite en la escena (px). El dibujo se ajusta a esa caja sin deformarse.
-inline const QSize TAM_MINION(83, 83);
-inline const QSizeF TAM_MINION_FUERTE(85, 85);
-inline const QSizeF TAM_GUARDIA(80, 120);
+inline const QSize TAM_MINION(84, 84);
+inline const QSizeF TAM_MINION_FUERTE(90, 90);
+inline const QSizeF TAM_GUARDIA(90, 130);
 inline const QSizeF TAM_ICONO(30, 30);
 inline const QSizeF TAM_CAMARA(48, 32);
 inline const QSizeF TAM_PUERTA(96, 128);
 inline const QSizeF TAM_BANANA(35, 35);
-inline const QSizeF TAM_LINGOTE(40, 24);
-inline const QSizeF TAM_BOLSA(40, 40);
+inline const QSizeF TAM_LINGOTE(45, 30);
+inline const QSizeF TAM_BOLSA(45, 45);
 inline const QSizeF TAM_CARRO(64, 128);
 inline const QSizeF TAM_OBSTACULO(64, 64);
 

@@ -14,6 +14,7 @@
         <file>Sprits d3/minions/Fortachon_caminando3.png</file>
         <file>Sprits d3/minions/Fortachon_estatico.png</file>
         <file>Sprits d3/minions/Fortachon_golpeando1.png</file>
+        <file>Sprits d3/minions/minion_estatico.png</file>
         <file>Sprits d3/minions/minions_caminando1.png</file>
         <file>Sprits d3/minions/minions_caminando2.png</file>
         <file>Sprits d3/minions/minions_caminando3.png</file>
@@ -42,9 +43,6 @@
         <file>Sprits d3/objetos_N1/maletin.png</file>
         <file>Sprits d3/objetos_N1/oro.png</file>
         <file>Sprits d3/objetos_N1/RayoLaser.png</file>
-        <file>Sprits d3/objetos_N2/barraTransito.png</file>
-        <file>Sprits d3/objetos_N2/bolsadebotin.png</file>
-        <file>Sprits d3/objetos_N2/Carro_Policia.png</file>
         <file>Sprits d3/objetos_N2/CarroPersecucion.png</file>
         <file>Sprits d3/objetos_N2/CarroPersecucion_danado.png</file>
         <file>Sprits d3/objetos_N2/CarroPersecucion_semidanado.png</file>
@@ -52,6 +50,5 @@
         <file>Sprits d3/objetos_N2/cono.png</file>
         <file>Sprits d3/objetos_N2/hueco.png</file>
         <file>Sprits d3/objetos_N2/machaAceite.png</file>
-        <file>Sprits d3/minions/minion_estatico.png</file>
     </qresource>
 </RCC>

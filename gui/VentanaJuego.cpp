@@ -12,6 +12,7 @@
 #include <QVBoxLayout>
 #include <QtMath>
 #include <cmath>
+#include <QTransform>
 
 namespace {
 // Cada tipo de obstáculo de la lógica tiene su dibujo
@@ -142,6 +143,7 @@ void VentanaJuego::construirNivel(int numero) {
     conoItem = nullptr;
     letreroItem = nullptr;
     fondoA = fondoB = nullptr;
+    laserItems.clear();
     itemsItems.clear();
     obstaculosItems.clear();
     tiempoAnimacion = 0.0;
@@ -166,6 +168,98 @@ void VentanaJuego::construirNivel1() {
     fondoItem->setFlag(QGraphicsItem::ItemClipsChildrenToShape);
     sx = fondo.width() / ANCHO_LOGICO_1;
     sy = fondo.height() / ALTO_LOGICO_1;
+
+    // Crear varios rayos laser pequeños en el segundo piso.
+    QPixmap laser = tira(Anim::RAYO_LASER);
+
+    // Girar el sprite vertical 90 grados.
+    laser = laser.transformed(
+        QTransform().rotate(90),
+        Qt::FastTransformation
+        );
+
+    // Reducir el tamaño de cada rayo.
+    laser = laser.scaled(
+        10 * sx,
+        20 * sy,
+        Qt::IgnoreAspectRatio,
+        Qt::SmoothTransformation
+        );
+    // Posiciones de los rayos:
+    // x = posicion horizontal.
+    // altura = distancia por encima del suelo.
+    // Posiciones de los rayos en los dos primeros pisos.
+    // Cada elemento contiene: X, altura del piso, altura del rayo.
+    struct PosicionLaser {
+        double x;
+        double pisoY;
+        double altura;
+    };
+
+    const PosicionLaser posicionesLaser[] = {
+        // PRIMER PISO
+        {88.0, 305.597, 0.0},
+        {104.0, 305.597, 0.0},
+
+        {145.0, 305.597, 48.0},
+        {161.0, 305.597, 48.0},
+
+        {202.0, 305.597, 0.0},
+        {218.0, 305.597, 0.0},
+
+        // SEGUNDO PISO
+        {88.0, 206.654, 0.0},
+        {104.0, 206.654, 0.0},
+
+        {145.0, 206.654, 48.0},
+        {161.0, 206.654, 48.0},
+
+        {202.0, 206.654, 0.0},
+        {218.0, 206.654, 0.0}
+    };
+
+    for (const PosicionLaser& dato : posicionesLaser) {
+
+        QGraphicsPixmapItem* nuevoLaser = escena->addPixmap(laser);
+
+        nuevoLaser->setOffset(
+            -laser.width() / 2.0,
+            -laser.height() / 2.0
+            );
+
+        nuevoLaser->setPos(
+            aEscena(QPointF(
+                dato.x,
+                dato.pisoY - dato.altura
+                ))
+            );
+
+        nuevoLaser->setZValue(2.5);
+
+        laserItems.append(nuevoLaser);
+    }
+
+    for (const PosicionLaser& dato : posicionesLaser) {
+
+        QGraphicsPixmapItem* nuevoLaser = escena->addPixmap(laser);
+
+        nuevoLaser->setOffset(
+            -laser.width() / 2.0,
+            -laser.height() / 2.0
+            );
+
+        // Ubicar el rayo a la altura correspondiente.
+        nuevoLaser->setPos(
+            aEscena(QPointF(
+                dato.x,
+                206.654 - dato.pisoY
+                ))
+            );
+
+        nuevoLaser->setZValue(2.5);
+
+        laserItems.append(nuevoLaser);
+    }
 
     // marca TEMPORAL de la salida (bórrala cuando tu fondo ya la dibuje)
     auto* marcaSalida = escena->addRect(-24, -64, 48, 64, QPen(Qt::green, 3));

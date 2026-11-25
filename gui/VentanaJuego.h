@@ -16,6 +16,7 @@
 class QEvent;
 class QKeyEvent;
 class QResizeEvent;
+class QGraphicsPixmapItem;
 
 class VentanaJuego : public QMainWindow {
     Q_OBJECT
@@ -71,6 +72,7 @@ private:
     SpriteAnimado* iconoItem = nullptr;
     QGraphicsPolygonItem* conoItem = nullptr;
     QGraphicsSimpleTextItem* letreroItem = nullptr;
+    QVector<QGraphicsPixmapItem*> laserItems;
     QVector<SpriteAnimado*> itemsItems;
     QPointF ultimaPosGuardia;
 

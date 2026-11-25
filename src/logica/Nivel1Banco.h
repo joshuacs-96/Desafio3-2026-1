@@ -39,10 +39,12 @@ public:
     void finalizarCaptura();
 
 private:
+private:
     void procesarRuido(const Ruido& ruido);
     void recogerItemsCercanos();
     void verificarCaptura();
     void verificarObjetivo();
+    void verificarLaser();
     QString determinarZona(const QPointF& posicion) const;
 
     Minion minion;
@@ -51,6 +53,7 @@ private:
     GuardiaCentinela guardia;
     int botinRecolectado;
     double radioCaptura;
+    bool laserActivado;
     Edificio edificio;
     QVector<ItemRecolectable> items;
 };
