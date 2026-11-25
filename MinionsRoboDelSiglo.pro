@@ -1,3 +1,4 @@
+
 QT += core gui widgets
 
 CONFIG += c++17
@@ -6,14 +7,15 @@ CONFIG -= app_bundle
 TEMPLATE = app
 TARGET = MinionsRoboDelSiglo
 
-INCLUDEPATH += $$PWD src
-RESOURCES += recursos.qrc \
+INCLUDEPATH += $$PWD src src/gui
+
+RESOURCES += recursos.qrc
 
 SOURCES += \
-    gui/GestorJuego.cpp \
-    gui/GestorRecursos.cpp \
-    gui/SpriteAnimado.cpp \
-    gui/VentanaJuego.cpp \
+    src/gui/GestorJuego.cpp \
+    src/gui/GestorRecursos.cpp \
+    src/gui/SpriteAnimado.cpp \
+    src/gui/VentanaJuego.cpp \
     src/logica/Edificio.cpp \
     src/logica/ItemRecolectable.cpp \
     src/main.cpp \
@@ -30,11 +32,11 @@ SOURCES += \
     src/logica/Obstaculo.cpp
 
 HEADERS += \
-    gui/ConfigGrafica.h \
-    gui/GestorJuego.h \
-    gui/GestorRecursos.h \
-    gui/SpriteAnimado.h \
-    gui/VentanaJuego.h \
+    src/gui/ConfigGrafica.h \
+    src/gui/GestorJuego.h \
+    src/gui/GestorRecursos.h \
+    src/gui/SpriteAnimado.h \
+    src/gui/VentanaJuego.h \
     src/logica/Boveda.h \
     src/logica/CamaraSeguridad.h \
     src/logica/CarroJugador.h \
