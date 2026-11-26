@@ -13,6 +13,7 @@ public:
                     double alcance);
 
     void actualizar(double deltaTiempo);
+    void activarAlarma();
     bool detecta(const Minion& minion) const;
 
     double obtenerAnguloActual() const;

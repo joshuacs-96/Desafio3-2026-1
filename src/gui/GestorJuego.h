@@ -66,4 +66,5 @@ private:
     bool golpeando = false;
     bool capturaEnCurso = false;
     double tiempoCaptura = 0.0;
+    double tiempoMartillo = 0.0;
 };

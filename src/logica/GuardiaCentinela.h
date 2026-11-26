@@ -12,9 +12,13 @@ public:
     GuardiaCentinela(const QPointF& posicionInicial, double radioPercepcion);
 
     void establecerEdificio(const Edificio* nuevoEdificio);
+    void activarMovimiento();
+    void activarAlarma(const QPointF& lugar);
+    void establecerPosicion(const QPointF& nuevaPosicion);
 
     bool percibir(const QPointF& posicionRuido, double intensidad);
-    void ver(const QPointF& posicionMinion);
+    void ver(const QPointF& posicionMinion, bool usandoEscalera,
+             const QPointF& destinoEscalera);
     void decidir();
     void actuar(double deltaTiempo);
     void registrarZona(const QString& zona, const QPointF& posicionZona);
@@ -28,6 +32,8 @@ public:
 
 private:
     void planificar(const QPointF& destino);
+    bool estaEnEscalera() const;
+    void limpiarRutaConservandoEscalera();
     void avanzarPorRuta(double deltaTiempo, double velocidadActual);
     QString elegirZonaDePatrulla() const;
 
@@ -46,5 +52,11 @@ private:
     QVector<QPointF> ruta;
     double radioVision = 120.0;
     bool viendoMinion = false;
+    double tiempoDesdeUltimaVista = 0.0;
     double espera = 0.0;
+    bool movimientoActivado = false;
+    bool patrullaInicialPendiente = true;
+    double probabilidadRutaOptima = 0.70;
+    bool usarRutaAlternativa = false;
+    bool alarmaActiva = false;
 };

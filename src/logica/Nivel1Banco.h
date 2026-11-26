@@ -24,6 +24,12 @@ public:
     void saltarMinion();
     bool usarEscalera(bool subir);
     void danarPuerta(double dano);
+    void golpear();
+    bool cercaDeObjetivo() const;
+    bool soporteDestruido() const;
+    bool murioPorLaser() const;
+    int obtenerRuidoGolpes() const;
+    QPointF obtenerPosicionSoporte() const;
 
     const Minion& obtenerMinion() const;
     const Boveda& obtenerBoveda() const;
@@ -56,4 +62,9 @@ private:
     bool laserActivado;
     Edificio edificio;
     QVector<ItemRecolectable> items;
+    double resistenciaSoporte = 40.0;
+    int ruidoGolpes = 0;
+    double tiempoDesdeGolpe = 0.0;
+    double tiempoBloqueoLaser = 0.0;
+    bool muertePorLaser = false;
 };

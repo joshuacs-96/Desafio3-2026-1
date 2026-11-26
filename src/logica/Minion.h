@@ -26,6 +26,7 @@ public:
     bool estaSaltando() const;
     void iniciarEscalera(const QPointF& destino);
     bool estaEnEscalera() const;
+    QPointF obtenerDestinoEscalera() const;
     void limitarHorizontal(double minimo, double maximo);
     double obtenerVelocidadVertical() const;  // > 0 subiendo, < 0 cayendo
 

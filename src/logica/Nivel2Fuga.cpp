@@ -105,7 +105,7 @@ double Nivel2Fuga::obtenerVelocidadScroll() const {
 void Nivel2Fuga::configurarDificultad() {
     if (modoDificil) {
         tiempoRestante = 60.0;
-        velocidadScroll = 150.0;
+        velocidadScroll = 105.0;
         danoPolicia = 30;
         carroJugador.establecerIntegridad(70.0);
         carroPolicia.configurarSensor(110.0, 1.5);
@@ -113,7 +113,7 @@ void Nivel2Fuga::configurarDificultad() {
     }
 
     tiempoRestante = 60.0;
-    velocidadScroll = 100.0;
+    velocidadScroll = 70.0;
     danoPolicia = 20;
     carroJugador.establecerIntegridad(100.0);
     carroPolicia.configurarSensor(70.0, 3.0);

@@ -17,13 +17,18 @@ public:
     double alturaDelPiso(int piso) const;
 
     const QVector<Escalera>& escaleras() const;
+    void actualizarLasers(bool soporteActivo, bool bovedaCerrada);
+    void retirarEscaleraDerechaInferior();
 
     // Puntos por los que hay que pasar para ir de origen a destino.
     // Dos puntos seguidos con la misma x y distinta y significan "usar la escalera".
-    QVector<QPointF> planificarRuta(const QPointF& origen, const QPointF& destino) const;
+    QVector<QPointF> planificarRuta(const QPointF& origen, const QPointF& destino,
+                                   bool usarAlternativa = false) const;
 
 private:
     QVector<double> pisos;
     QVector<double> columnas;
     QVector<Escalera> listaEscaleras;
+    bool laserSoporteActivo = true;
+    bool lasersBovedaActivos = true;
 };

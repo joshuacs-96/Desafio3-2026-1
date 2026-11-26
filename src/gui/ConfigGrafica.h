@@ -62,7 +62,7 @@ inline constexpr Animacion MINION_CAPTURADO {"Sprits d3/minions/minions_capturad
 // ---------------- Kevin fortachón ----------------
 inline constexpr Animacion FORTACHON_IDLE    {"Sprits d3/minions/Fortachon_estatico", 1, 0.0, 64, 64};
 inline constexpr Animacion FORTACHON_CAMINAR {"Sprits d3/minions/Fortachon_caminando", 3, 8.0, 64, 64};
-inline constexpr Animacion FORTACHON_GOLPEAR {"Sprits d3/minions/Fortachon_golpeando1", 1, 0.0, 64, 64};
+inline constexpr Animacion FORTACHON_GOLPEAR {"Sprits d3/minions/minions_martillo", 4, 8.0, 64, 64, true};
 
 // ---------------- Policía (agente) ----------------
 inline constexpr Animacion POLICIA_QUIETO    {"Sprits d3/agente/policia_quieto", 1, 0.0, 64, 96};
@@ -78,11 +78,15 @@ inline constexpr Animacion PUERTA_DANADA  {"Sprits d3/objetos_N1/boveda_danada",
 inline constexpr Animacion PUERTA_ABIERTA {"Sprits d3/objetos_N1/boveda_abierta", 1, 0.0, 96, 128};
 inline constexpr Animacion CAMARA    {"Sprits d3/objetos_N1/camara", 1, 0.0, 48, 32};
 inline constexpr Animacion ESCALERA  {"Sprits d3/objetos_N1/escaleras", 1, 0.0, 64, 100};
+inline constexpr Animacion ESCALERA_ROJA {"Sprits d3/objetos_N1/escaleras_roja", 1, 0.0, 64, 100};
 inline constexpr Animacion BANANA    {"Sprits d3/objetos_N1/banana", 1, 0.0, 32, 32};
 inline constexpr Animacion LINGOTE   {"Sprits d3/objetos_N1/oro", 1, 0.0, 40, 24};
 inline constexpr Animacion BOLSA     {"Sprits d3/objetos_N1/bolsa", 1, 0.0, 40, 40};
 // reservados para el láser y los objetos que caen:
 inline constexpr Animacion RAYO_LASER  {"Sprits d3/objetos_N1/RayoLaser", 1, 0.0, 16, 64};
+inline constexpr Animacion SOPORTE {"Sprits d3/objetos_N1/soporte", 1, 0.0, 48, 48};
+inline constexpr Animacion SOPORTE_DESTRUIDO {"Sprits d3/objetos_N1/soporte_destruido", 1, 0.0, 48, 48};
+inline constexpr Animacion SOPORTE_DESTRUIDO_ROJO {"Sprits d3/objetos_N1/soporte_destruido_rojo", 1, 0.0, 48, 48};
 inline constexpr Animacion CAJA_CARTON {"Sprits d3/objetos_N1/caja_carton", 1, 0.0, 48, 48};
 inline constexpr Animacion JARRON      {"Sprits d3/objetos_N1/jarron", 1, 0.0, 48, 48};
 inline constexpr Animacion MALETIN     {"Sprits d3/objetos_N1/maletin", 1, 0.0, 48, 48};
@@ -91,9 +95,9 @@ inline constexpr Animacion MALETIN     {"Sprits d3/objetos_N1/maletin", 1, 0.0, 
 inline constexpr Animacion CARRO_NORMAL     {"Sprits d3/objetos_N2/CarroPersecucion", 1, 0.0, 64, 128};
 inline constexpr Animacion CARRO_SEMIDANADO {"Sprits d3/objetos_N2/CarroPersecucion_semidanado", 1, 0.0, 64, 128};
 inline constexpr Animacion CARRO_DANADO     {"Sprits d3/objetos_N2/CarroPersecucion_danado", 1, 0.0, 64, 128};
-inline constexpr Animacion CARRO_POLICIA    {"Sprits d3/objetos_N2/Carro_Policia", 1, 0.0, 64, 128};
+inline constexpr Animacion CARRO_POLICIA    {"Sprits d3/objetos_N2/CarroPersecucion", 1, 0.0, 64, 128};
 inline constexpr Animacion OBS_CONO     {"Sprits d3/objetos_N2/cono", 1, 0.0, 64, 64};
-inline constexpr Animacion OBS_BARRERA  {"Sprits d3/objetos_N2/barra Transito", 1, 0.0, 96, 40};
+inline constexpr Animacion OBS_BARRERA  {"Sprits d3/objetos_N2/cono", 1, 0.0, 96, 40};
 inline constexpr Animacion OBS_HUECO    {"Sprits d3/objetos_N2/hueco", 1, 0.0, 64, 64};
 inline constexpr Animacion OBS_ACEITE   {"Sprits d3/objetos_N2/machaAceite", 1, 0.0, 96, 96};
 inline constexpr Animacion CHISPAS      {"Sprits d3/objetos_N2/chispasChoque", 1, 0.0, 64, 64};   // (reservado)

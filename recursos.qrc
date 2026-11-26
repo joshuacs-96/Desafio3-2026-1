@@ -8,6 +8,7 @@
         <file>Sprits d3/agente/signo_admiracion.png</file>
         <file>Sprits d3/agente/signo_interrogacion.png</file>
         <file>Sprits d3/escenarios/Escenario_N1.png</file>
+        <file>Sprits d3/escenarios/Escenario_N1_alarma.jpg</file>
         <file>Sprits d3/escenarios/Escenario_N2.png</file>
         <file>Sprits d3/minions/Fortachon_caminando1.png</file>
         <file>Sprits d3/minions/Fortachon_caminando2.png</file>
@@ -39,10 +40,14 @@
         <file>Sprits d3/objetos_N1/caja_carton.png</file>
         <file>Sprits d3/objetos_N1/camara.png</file>
         <file>Sprits d3/objetos_N1/escaleras.png</file>
+        <file>Sprits d3/objetos_N1/escaleras_roja.png</file>
+        <file>Sprits d3/objetos_N1/soporte_destruido_rojo.png</file>
         <file>Sprits d3/objetos_N1/jarron.png</file>
         <file>Sprits d3/objetos_N1/maletin.png</file>
         <file>Sprits d3/objetos_N1/oro.png</file>
         <file>Sprits d3/objetos_N1/RayoLaser.png</file>
+        <file>Sprits d3/objetos_N1/soporte.png</file>
+        <file>Sprits d3/objetos_N1/soporte_destruido.png</file>
         <file>Sprits d3/objetos_N2/CarroPersecucion.png</file>
         <file>Sprits d3/objetos_N2/CarroPersecucion_danado.png</file>
         <file>Sprits d3/objetos_N2/CarroPersecucion_semidanado.png</file>

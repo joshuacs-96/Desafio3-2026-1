@@ -11,7 +11,7 @@ Minion::Minion()
     risaPendiente(false),
     duracionBananaRestante(0.0),
     tiempoHastaSiguienteRisa(0.0),
-    velocidadBase(130.0),
+    velocidadBase(70.0),
     enSalto(false),
     tiempoSalto(0.0),
     ySuelo(0.0),
@@ -19,7 +19,7 @@ Minion::Minion()
     gravedad(900.0),
     escalando(false),
     destinoEscalera(0.0, 0.0),
-    velocidadEscalera(100.0){
+    velocidadEscalera(75.0){
 }
 
 void Minion::mover(const QPointF& direccion, double deltaTiempo) {
@@ -67,7 +67,9 @@ void Minion::recibirDanio(int dano) {
 
     if (energia == 0 && vidas > 0) {
         vidas--;
-        energia = 100;
+        if (vidas > 0) {
+            energia = 100;
+        }
     }
 }
 
@@ -153,6 +155,10 @@ void Minion::iniciarEscalera(const QPointF& destino) {
 
 bool Minion::estaEnEscalera() const {
     return escalando;
+}
+
+QPointF Minion::obtenerDestinoEscalera() const {
+    return destinoEscalera;
 }
 
 double Minion::obtenerVelocidadVertical() const {

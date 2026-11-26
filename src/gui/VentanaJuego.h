@@ -59,6 +59,7 @@ private:
     QLabel* etiquetaHud;
     QProgressBar* barraPrincipal;
     QProgressBar* barraEnergia;
+    QWidget* panelHud;
 
     double sx = 1.0;
     double sy = 1.0;
@@ -69,10 +70,14 @@ private:
     SpriteAnimado* guardiaItem = nullptr;
     SpriteAnimado* camaraItem = nullptr;
     SpriteAnimado* puertaItem = nullptr;
+    SpriteAnimado* soporteItem = nullptr;
     SpriteAnimado* iconoItem = nullptr;
     QGraphicsPolygonItem* conoItem = nullptr;
     QGraphicsSimpleTextItem* letreroItem = nullptr;
+    QGraphicsPixmapItem* fondoBanco = nullptr;
+    bool fondoAlarmaActivado = false;
     QVector<QGraphicsPixmapItem*> laserItems;
+    QVector<QGraphicsPixmapItem*> escalerasItems;
     QVector<SpriteAnimado*> itemsItems;
     QPointF ultimaPosGuardia;
 
