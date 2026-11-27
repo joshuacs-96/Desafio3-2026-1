@@ -13,6 +13,9 @@
 #include <QtMath>
 #include <cmath>
 #include <QTransform>
+#include <QColor>
+#include <QBrush>
+#include <QPen>
 
 namespace {
 // Cada tipo de obstáculo de la lógica tiene su dibujo
@@ -142,7 +145,8 @@ void VentanaJuego::usarAnimacion(SpriteAnimado* sprite, const Animacion& animaci
 // ---------------------------------------------------------------- construcción
 
 void VentanaJuego::construirNivel(int numero) {
-    escena->clear();                       // destruye todos los items
+    escena->clear();    // destruye todos los items
+    escudoItem = nullptr;
     minionItem = guardiaItem = camaraItem = puertaItem = iconoItem = nullptr;
     soporteItem = nullptr;
     policiaItem = carroItem = nullptr;
@@ -155,6 +159,7 @@ void VentanaJuego::construirNivel(int numero) {
     escalerasItems.clear();
     itemsItems.clear();
     obstaculosItems.clear();
+    recolectablesN2Items.clear();
     tiempoAnimacion = 0.0;
 
     if (numero == 1) {
@@ -272,30 +277,52 @@ void VentanaJuego::construirNivel1() {
 
 void VentanaJuego::construirNivel2() {
     using namespace ConfigGrafica;
-    const Nivel2Fuga* n = gestor->nivel2();
 
     const QPixmap fondo = tira(Anim::FONDO_NIVEL2);
     escena->setSceneRect(fondo.rect());
     fondoA = escena->addPixmap(fondo);
-    fondoB = escena->addPixmap(fondo);       // segunda copia para el scroll continuo
+    fondoB = escena->addPixmap(fondo);       // segunda copia, a la derecha, para el scroll continuo
     fondoA->setZValue(0);
     fondoB->setZValue(0);
+    fondoB->setPos(fondo.width(), 0);
     desplazamientoFondo = 0.0;
     sx = fondo.width() / ANCHO_LOGICO_2;
     sy = fondo.height() / ALTO_LOGICO_2;
 
-    for (const Obstaculo& obstaculo : n->obtenerObstaculos()) {
-        obstaculosItems.append(crearSprite(animacionDeObstaculo(obstaculo.obtenerTipo()),
-                                           TAM_OBSTACULO, false, 2));
-    }
-
     policiaItem = crearSprite(Anim::CARRO_POLICIA, TAM_CARRO, false, 3);
+    policiaItem->setRotation(ROTACION_CARROS);
+    policiaItem->setVisible(false);          // solo aparece en difícil, cuando le toca pasar
+
     carroItem = crearSprite(Anim::CARRO_NORMAL, TAM_CARRO, false, 4);
+    carroItem->setRotation(ROTACION_CARROS);
+    // Escudo visual del carro
+    escudoItem = escena->addEllipse(
+        -48.0 * sx,
+        -48.0 * sy,
+        96.0 * sx,
+        96.0 * sy,
+        QPen(QColor(60, 200, 255, 230), 3.0),
+        QBrush(QColor(30, 160, 255, 45))
+        );
+
+    escudoItem->setZValue(4);
+    escudoItem->setVisible(false);
+
+    // letrero de peligro sobre el carro
+    letreroItem = escena->addSimpleText("");
+    QFont fuente = letreroItem->font();
+    fuente.setPixelSize(22);
+    fuente.setBold(true);
+    letreroItem->setFont(fuente);
+    letreroItem->setBrush(Qt::white);
+    letreroItem->setPen(QPen(Qt::black, 2));
+    letreroItem->setZValue(10);
+    letreroItem->setVisible(false);
 
     barraEnergia->setVisible(false);
     barraPrincipal->setFormat("Integridad %p%");
-    statusBar()->showMessage("W: acelerar   |   S: frenar   |   A / D: girar   |   "
-                             "Aguanta hasta que se acabe el tiempo");
+    statusBar()->showMessage("W / ↑: subir de carril   |   S / ↓: bajar de carril   |   "
+                             "Esquiva los obstáculos y aguanta hasta que se acabe el tiempo");
 }
 
 // ---------------------------------------------------------------- actualización
@@ -502,16 +529,15 @@ void VentanaJuego::actualizarNivel2(double dt) {
         return;
     }
 
-    // --- carretera en scroll horizontal continuo ---
-    const double ancho = fondoA->pixmap().width();
+    tiempoAnimacion += dt;
 
-    desplazamientoFondo = std::fmod(
-        desplazamientoFondo + n->obtenerVelocidadScroll() * sx * dt,
-        ancho
-        );
-
-    fondoA->setPos(desplazamientoFondo, 0);
-    fondoB->setPos(desplazamientoFondo - ancho, 0);
+    // --- carretera: se mueve hacia la izquierda (el carro "avanza" hacia la derecha) ---
+    if (SCROLL_FONDO_NIVEL2) {
+        const double ancho = fondoA->pixmap().width();
+        desplazamientoFondo = std::fmod(desplazamientoFondo + n->obtenerVelocidadScroll() * sx * dt, ancho);
+        fondoA->setPos(-desplazamientoFondo, 0);
+        fondoB->setPos(ancho - desplazamientoFondo, 0);
+    }
 
     // --- carro: el dibujo depende de la integridad (normal, semidañado, dañado) ---
     const CarroJugador& carro = n->obtenerCarroJugador();
@@ -520,23 +546,127 @@ void VentanaJuego::actualizarNivel2(double dt) {
                                                : (integridad > 33.0 ? Anim::CARRO_SEMIDANADO
                                                                     : Anim::CARRO_DANADO));
     carroItem->setPos(aEscena(carro.obtenerPosicion()));
-    carroItem->setRotation(carro.estaDerrapando() ? 18.0 : 0.0);      // se ladea al derrapar
+    carroItem->setRotation(ROTACION_CARROS + (carro.estaDerrapando() ? 18.0 : 0.0));   // se ladea al derrapar
 
-    // --- patrulla ---
-    policiaItem->setPos(aEscena(n->obtenerCarroPolicia().obtenerPosicion()));
+    // Mostrar el escudo mientras dure la protección
+    const bool escudoActivo = carro.estaProtegido();
 
-    // --- obstáculos ---
-    const QVector<Obstaculo>& obstaculos = n->obtenerObstaculos();
-    for (int i = 0; i < obstaculos.size() && i < obstaculosItems.size(); ++i) {
-        obstaculosItems[i]->setVisible(obstaculos[i].estaActivo());
-        obstaculosItems[i]->setPos(aEscena(obstaculos[i].obtenerPosicion()));
+    escudoItem->setVisible(escudoActivo);
+
+    if (escudoActivo) {
+        escudoItem->setPos(aEscena(carro.obtenerPosicion()));
+    }
+
+    // --- patrulla (solo existe en difícil) ---
+    const CarroPolicia& policia = n->obtenerCarroPolicia();
+    policiaItem->setVisible(policia.estaEnPantalla());
+    policiaItem->setPos(aEscena(policia.obtenerPosicion()));
+
+    // --- obstáculos que aparecen y desaparecen ---
+    sincronizarObstaculos(n->obtenerObstaculos());
+    sincronizarRecolectables(n->obtenerRecolectables());
+
+    // --- letrero de peligro ---
+    const bool peligro = policia.estaEnPantalla() && policia.estaCercaDelJugador();
+    letreroItem->setVisible(peligro);
+    if (peligro) {
+        letreroItem->setText("¡Patrulla cerca!");
+        const QPointF base = aEscena(carro.obtenerPosicion());
+        letreroItem->setPos(base.x() - letreroItem->boundingRect().width() / 2.0, base.y() - 70.0);
     }
 
     // --- HUD ---
-    etiquetaHud->setText(QString("Nivel 2  |  Tiempo: %1 s  |  Botín: %2\nAguanta la persecución hasta que se acabe el tiempo")
-                             .arg(qCeil(n->obtenerTiempoRestante()))
-                             .arg(carro.obtenerBotinActual()));
+    QString consejo = n->estaEnModoDificil()
+                          ? "Esquiva los obstáculos y cuidado con la patrulla"
+                          : "Esquiva los obstáculos hasta que se acabe el tiempo";
+
+    QString estadoEscudo;
+
+    if (carro.estaProtegido()) {
+        estadoEscudo = QString(" | ESCUDO: %1 s")
+        .arg(carro.obtenerTiempoEscudo(), 0, 'f', 1);
+    }
+
+    etiquetaHud->setText(
+        QString("Nivel 2 (%1) | Tiempo: %2 s | Botín: %3 | Integridad: %4%5\n%6")
+            .arg(n->estaEnModoDificil() ? "Difícil" : "Fácil")
+            .arg(qCeil(n->obtenerTiempoRestante()))
+            .arg(carro.obtenerBotinActual())
+            .arg(static_cast<int>(integridad))
+            .arg(estadoEscudo)
+            .arg(consejo));
+
     barraPrincipal->setValue(static_cast<int>(integridad));
+
+    // Sincronizar los obstáculos con sus sprites
+    sincronizarObstaculos(n->obtenerObstaculos());
+
+    // Sincronizar los objetos recolectables
+    sincronizarRecolectables(n->obtenerRecolectables());
+}
+
+void VentanaJuego::sincronizarObstaculos(
+    const QVector<Obstaculo>& obstaculos) {
+
+    using namespace ConfigGrafica;
+
+    // Eliminar sprites de obstáculos que salieron de pantalla
+    while (obstaculosItems.size() > obstaculos.size()) {
+        delete obstaculosItems.takeFirst();
+    }
+
+    // Crear sprites para los obstáculos nuevos
+    for (int i = obstaculosItems.size(); i < obstaculos.size(); ++i) {
+        obstaculosItems.append(
+            crearSprite(
+                animacionDeObstaculo(obstaculos[i].obtenerTipo()),
+                TAM_OBSTACULO,
+                false,
+                2
+                )
+            );
+    }
+
+    // Actualizar posición y visibilidad
+    for (int i = 0; i < obstaculos.size(); ++i) {
+        obstaculosItems[i]->setVisible(obstaculos[i].estaActivo());
+
+        obstaculosItems[i]->setPos(
+            aEscena(obstaculos[i].obtenerPosicion())
+            );
+    }
+}
+
+void VentanaJuego::sincronizarRecolectables(
+    const QVector<RecolectableNivel2>& items) {
+
+    using namespace ConfigGrafica;
+
+    // Eliminar sprites de objetos que ya salieron de la pantalla
+    while (recolectablesN2Items.size() > items.size()) {
+        delete recolectablesN2Items.takeFirst();
+    }
+
+    // Crear sprites para los objetos nuevos
+    for (int i = recolectablesN2Items.size(); i < items.size(); ++i) {
+        if (items[i].tipo == "Banana") {
+            recolectablesN2Items.append(
+                crearSprite(Anim::BANANA_N2, Anim::TAM_BANANA_N2, false, 2.5));
+        } else {
+            recolectablesN2Items.append(
+                crearSprite(Anim::LINGOTE_N2, Anim::TAM_LINGOTE_N2, false, 2.5));
+        }
+    }
+
+    // Actualizar posición y visibilidad
+    for (int i = 0; i < items.size(); ++i) {
+        recolectablesN2Items[i]->setVisible(items[i].activo);
+
+        const double flotar = std::sin(tiempoAnimacion * 4.0 + i) * 3.0;
+
+        recolectablesN2Items[i]->setPos(
+            aEscena(items[i].posicion) + QPointF(0.0, flotar));
+    }
 }
 
 // ---------------------------------------------------------------- fin de nivel

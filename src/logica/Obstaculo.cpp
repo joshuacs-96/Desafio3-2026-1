@@ -24,13 +24,17 @@ void Obstaculo::aplicarEfecto(CarroJugador& carro) {
         return;
     }
 
+    if (carro.estaProtegido()) {
+        activo = false;
+        return;
+    }
     carro.recibirDanio(dano);
 
     if (tipo == "Aceite") {
         carro.activarDerrape(factorVelocidad);
+        activo = false;
         return;
     }
-
     if (tipo == "Barrera") {
         carro.rebotar();
         carro.perderBotin(1);
