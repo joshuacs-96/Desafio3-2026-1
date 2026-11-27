@@ -44,6 +44,7 @@ void Nivel1Banco::iniciar() {
     ruidoGolpes = 0;
     tiempoDesdeGolpe = 0.0;
     tiempoBloqueoLaser = 0.0;
+    tiempoElectrocutado = 0.0;
     muertePorLaser = false;
     lasersSuelo.clear();
     contactoLaserSuelo = false;
@@ -76,6 +77,7 @@ void Nivel1Banco::actualizar(double deltaTiempo) {
 
     minion.actualizar(deltaTiempo);
     tiempoBloqueoLaser = std::max(0.0, tiempoBloqueoLaser - deltaTiempo);
+    tiempoElectrocutado = std::max(0.0, tiempoElectrocutado - deltaTiempo);
     if (ruidoGolpes > 0) {
         tiempoDesdeGolpe += deltaTiempo;
         if (tiempoDesdeGolpe >= 1.5) {
@@ -248,6 +250,7 @@ void Nivel1Banco::activarAlarmaBoveda() {
 
 bool Nivel1Banco::soporteDestruido() const { return resistenciaSoporte <= 0.0; }
 bool Nivel1Banco::murioPorLaser() const { return muertePorLaser; }
+bool Nivel1Banco::estaElectrocutado() const { return tiempoElectrocutado > 0.0; }
 int Nivel1Banco::obtenerRuidoGolpes() const { return ruidoGolpes; }
 int Nivel1Banco::obtenerRisasEmitidas() const { return risasEmitidas; }
 double Nivel1Banco::obtenerResistenciaSoporte() const { return resistenciaSoporte; }
@@ -295,6 +298,7 @@ void Nivel1Banco::verificarLaser() {
             }
         }
         if (tocaSuelo && !contactoLaserSuelo) {
+            tiempoElectrocutado = 0.4;
             const int vidasAntes = minion.obtenerVidas();
             minion.recibirDanio(40);
             if (minion.obtenerVidas() <= 0
@@ -324,6 +328,7 @@ void Nivel1Banco::verificarLaser() {
     }
 
     if (!laserActivado) {
+        tiempoElectrocutado = 0.4;
         laserActivado = true;
         const double lado = posicion.x() < laserX ? -1.0 : 1.0;
         minion.recibirDanio(40);

@@ -28,6 +28,7 @@ public:
     bool cercaDeObjetivo() const;
     bool soporteDestruido() const;
     bool murioPorLaser() const;
+    bool estaElectrocutado() const;
     int obtenerRuidoGolpes() const;
     int obtenerRisasEmitidas() const;
     double obtenerResistenciaSoporte() const;
@@ -70,6 +71,7 @@ private:
     int ruidoGolpes = 0;
     double tiempoDesdeGolpe = 0.0;
     double tiempoBloqueoLaser = 0.0;
+    double tiempoElectrocutado = 0.0;
     bool muertePorLaser = false;
     QVector<QPointF> lasersSuelo;
     bool contactoLaserSuelo = false;

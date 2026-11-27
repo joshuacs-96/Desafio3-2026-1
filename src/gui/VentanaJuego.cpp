@@ -511,7 +511,7 @@ void VentanaJuego::actualizarNivel1(double dt) {
     const bool fuerte = minion.tieneBananaActiva();
     usarAnimacion(soporteItem, boveda.estaAbierta() ? Anim::SOPORTE_DESTRUIDO_ROJO
                       : (n->soporteDestruido() ? Anim::SOPORTE_DESTRUIDO : Anim::SOPORTE));
-    soporteItem->fijarTamano(n->soporteDestruido() ? QSizeF(280, 280) : QSizeF(220, 220));
+    soporteItem->fijarTamano(n->soporteDestruido() ? QSizeF(240, 240) : QSizeF(220, 220));
     soporteItem->setPos(aEscena(n->obtenerPosicionSoporte()
                                  + QPointF(0.0, n->soporteDestruido() ? 9.0 : 5.0)));
     if (laserItems.size() == 3) {
@@ -523,7 +523,9 @@ void VentanaJuego::actualizarNivel1(double dt) {
     // --- Kevin: la animación depende de lo que está haciendo ---
     minionItem->fijarTamano(fuerte ? TAM_MINION_FUERTE : TAM_MINION);
 
-    if (gestor->faseCaptura() == 1) {
+    if (n->estaElectrocutado()) {
+        usarAnimacion(minionItem, Anim::MINION_ELECTROCUTADO);
+    } else if (gestor->faseCaptura() == 1) {
         usarAnimacion(minionItem, Anim::MINION_CAPTURADO);
 
     } else if (gestor->faseCaptura() == 2) {

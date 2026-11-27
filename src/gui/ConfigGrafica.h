@@ -51,6 +51,7 @@ inline constexpr Animacion FONDO_NIVEL2 {"Sprits d3/escenarios/Escenario_N2", 1,
 
 // ---------------- Kevin ----------------
 inline constexpr Animacion MINION_IDLE      {"Sprits d3/minions/minion_estatico", 1, 0.0, 64, 64};
+inline constexpr Animacion MINION_ELECTROCUTADO {"Sprits d3/minions/minion_electrocutado", 1, 0.0, 64, 64};
 inline constexpr Animacion MINION_CAMINAR   {"Sprits d3/minions/minions_caminando", 4, 8.0, 64, 64};
 inline constexpr Animacion MINION_SALTAR    {"Sprits d3/minions/minions_saltando", 3, 0.0, 64, 64};
 inline constexpr Animacion MINION_GOLPEAR   {"Sprits d3/minions/minions_martillo", 4, 8.0, 64, 64, true};
