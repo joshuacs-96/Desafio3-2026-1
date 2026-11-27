@@ -45,6 +45,9 @@ void Nivel1Banco::iniciar() {
     tiempoDesdeGolpe = 0.0;
     tiempoBloqueoLaser = 0.0;
     muertePorLaser = false;
+    lasersSuelo.clear();
+    contactoLaserSuelo = false;
+    risasEmitidas = 0;
 
     minion.establecerPosicion(INICIO_MINION);
 
@@ -87,6 +90,7 @@ void Nivel1Banco::actualizar(double deltaTiempo) {
     recogerItemsCercanos();
 
     if (minion.hayRisaPendiente()) {
+        ++risasEmitidas;
         procesarRuido(minion.generarRisaAutomatica());
     }
 
@@ -182,7 +186,9 @@ void Nivel1Banco::danarPuerta(double dano) {
         return;
     }
 
+    bool estabaAbierta = boveda.estaAbierta();
     boveda.recibirDanio(dano);
+    if (!estabaAbierta && boveda.estaAbierta()) activarAlarmaBoveda();
 
     Ruido golpe {"Golpe a la puerta", minion.obtenerPosicion(), 7.0, 1.0};
     procesarRuido(golpe);
@@ -203,11 +209,7 @@ void Nivel1Banco::golpear() {
         resistenciaSoporte = std::max(0.0, resistenciaSoporte - dano);
     } else {
         boveda.recibirDanio(dano);
-        if (boveda.estaAbierta()) {
-            camara.activarAlarma();
-            edificio.retirarEscaleraDerechaInferior();
-            guardia.activarAlarma(POSICION_PUERTA);
-        }
+        if (boveda.estaAbierta()) activarAlarmaBoveda();
     }
     ++ruidoGolpes;
     tiempoDesdeGolpe = 0.0;
@@ -217,10 +219,40 @@ void Nivel1Banco::golpear() {
     }
 }
 
+void Nivel1Banco::activarAlarmaBoveda() {
+    for (int piso = 0; piso < 3; ++piso) {
+        if (piso == 0) {
+            // Rayos separados para que el jugador deba saltar en el camino a la salida.
+            lasersSuelo.append(QPointF(235.0, PISO_Y[piso]));
+            lasersSuelo.append(QPointF(295.0, PISO_Y[piso]));
+            lasersSuelo.append(QPointF(340.0, PISO_Y[piso]));
+            continue;
+        }
+        if (piso == 1) {
+            // Primer láser antes de la escalera de x=180; el otro queda hacia el soporte.
+            lasersSuelo.append(QPointF(150.0, PISO_Y[piso]));
+            lasersSuelo.append(QPointF(215.0, PISO_Y[piso]));
+            continue;
+        }
+        if (piso == 2) {
+            // Separados para que no aparezcan juntos al activarse la alarma.
+            lasersSuelo.append(QPointF(105.0, PISO_Y[piso]));
+            lasersSuelo.append(QPointF(215.0, PISO_Y[piso]));
+            continue;
+        }
+    }
+    camara.activarAlarma();
+    edificio.retirarEscaleraDerechaInferior();
+    guardia.activarAlarma(POSICION_PUERTA);
+}
+
 bool Nivel1Banco::soporteDestruido() const { return resistenciaSoporte <= 0.0; }
 bool Nivel1Banco::murioPorLaser() const { return muertePorLaser; }
 int Nivel1Banco::obtenerRuidoGolpes() const { return ruidoGolpes; }
+int Nivel1Banco::obtenerRisasEmitidas() const { return risasEmitidas; }
+double Nivel1Banco::obtenerResistenciaSoporte() const { return resistenciaSoporte; }
 QPointF Nivel1Banco::obtenerPosicionSoporte() const { return POSICION_SOPORTE; }
+const QVector<QPointF>& Nivel1Banco::obtenerLasersSuelo() const { return lasersSuelo; }
 
 const Minion& Nivel1Banco::obtenerMinion() const { return minion; }
 const Boveda& Nivel1Banco::obtenerBoveda() const { return boveda; }
@@ -247,10 +279,34 @@ void Nivel1Banco::procesarRuido(const Ruido& ruido) {
 void Nivel1Banco::verificarLaser() {
     if (minion.estaEnEscalera()) {
         laserActivado = false;
+        contactoLaserSuelo = false;
         return;
     }
 
     const QPointF posicion = minion.obtenerPosicionSuelo();
+    bool tocaSuelo = false;
+    if (boveda.estaAbierta()) {
+        const double altura = posicion.y() - minion.obtenerPosicion().y();
+        for (const QPointF& laser : lasersSuelo) {
+            if (std::abs(posicion.y() - laser.y()) < 8.0
+                && std::abs(posicion.x() - laser.x()) <= 11.0 && altura < 12.0) {
+                tocaSuelo = true;
+                break;
+            }
+        }
+        if (tocaSuelo && !contactoLaserSuelo) {
+            const int vidasAntes = minion.obtenerVidas();
+            minion.recibirDanio(40);
+            if (minion.obtenerVidas() <= 0
+                || (boveda.estaAbierta() && minion.obtenerVidas() < vidasAntes)) {
+                muertePorLaser = true;
+                perdido = true;
+            }
+            Ruido alarma {"Alarma de laser", posicion, 10.0, 1.0};
+            procesarRuido(alarma);
+        }
+    }
+    contactoLaserSuelo = tocaSuelo;
     const int piso = edificio.pisoDe(posicion);
     double laserX = -1.0;
 
@@ -291,10 +347,17 @@ void Nivel1Banco::recogerItemsCercanos() {
             continue;                       // el botín no se alcanza con la puerta cerrada
         }
 
-        // Durante el salto se usa la posición real, no la proyección sobre el piso.
-        QLineF distancia(minion.obtenerPosicion(), item.obtenerPosicion());
-        if (distancia.length() > RADIO_RECOGER) {
-            continue;
+        // La banana exige mayor proximidad horizontal y tiene en cuenta el salto.
+        if (item.obtenerTipo() == "Banana") {
+            const QPointF diferencia = minion.obtenerPosicion() - item.obtenerPosicion();
+            if (std::abs(diferencia.x()) > 8.0 || std::abs(diferencia.y()) > 12.0) {
+                continue;
+            }
+        } else {
+            QLineF distancia(minion.obtenerPosicion(), item.obtenerPosicion());
+            if (distancia.length() > RADIO_RECOGER) {
+                continue;
+            }
         }
 
         item.recoger();

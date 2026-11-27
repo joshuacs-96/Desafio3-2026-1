@@ -40,6 +40,8 @@ signals:
     void minionCapturado(int vidasRestantes);
     void guardiaCambioEstado(const QString& estado);
     void bananaUsada();
+    void minionRio();
+    void golpeRealizado(int golpesConsecutivos);
     void carroGolpeado();
     void nivelCompletado(int numero);
     void nivelPerdido(int numero);

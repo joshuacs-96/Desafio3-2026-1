@@ -29,7 +29,10 @@ public:
     bool soporteDestruido() const;
     bool murioPorLaser() const;
     int obtenerRuidoGolpes() const;
+    int obtenerRisasEmitidas() const;
+    double obtenerResistenciaSoporte() const;
     QPointF obtenerPosicionSoporte() const;
+    const QVector<QPointF>& obtenerLasersSuelo() const;
 
     const Minion& obtenerMinion() const;
     const Boveda& obtenerBoveda() const;
@@ -51,6 +54,7 @@ private:
     void verificarCaptura();
     void verificarObjetivo();
     void verificarLaser();
+    void activarAlarmaBoveda();
     QString determinarZona(const QPointF& posicion) const;
 
     Minion minion;
@@ -67,4 +71,7 @@ private:
     double tiempoDesdeGolpe = 0.0;
     double tiempoBloqueoLaser = 0.0;
     bool muertePorLaser = false;
+    QVector<QPointF> lasersSuelo;
+    bool contactoLaserSuelo = false;
+    int risasEmitidas = 0;
 };

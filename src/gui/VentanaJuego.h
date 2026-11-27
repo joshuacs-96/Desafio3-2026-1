@@ -17,6 +17,9 @@ class QEvent;
 class QKeyEvent;
 class QResizeEvent;
 class QGraphicsPixmapItem;
+class QMediaPlayer;
+class QAudioOutput;
+class QTimer;
 
 class VentanaJuego : public QMainWindow {
     Q_OBJECT
@@ -45,6 +48,11 @@ private:
     void construirNivel2();
     void actualizarNivel1(double dt);
     void actualizarNivel2(double dt);
+    void mostrarMenu();
+    void iniciarNivelDesdeMenu(int numero);
+    void actualizarBarra(QLabel* etiqueta, int columna, double proporcion);
+    void reproducirGolpe(int golpesConsecutivos);
+    void reproducirRisa();
 
     QPointF aEscena(const QPointF& logico) const;
     QPixmap tira(const Animacion& animacion);
@@ -57,9 +65,21 @@ private:
     QGraphicsScene* escena;
     QGraphicsView* vista;
     QLabel* etiquetaHud;
+    QLabel* etiquetaObjetivo;
     QProgressBar* barraPrincipal;
     QProgressBar* barraEnergia;
     QWidget* panelHud;
+    QLabel* barraVitalidadImagen;
+    QLabel* barraSoporteImagen;
+    QLabel* barraBovedaImagen;
+    QLabel* barraRuidoImagen;
+    QVector<QLabel*> corazonesIntegridad;
+    bool enMenu = true;
+    QMediaPlayer* musicaFondo;
+    QMediaPlayer* sonidoRisa;
+    QMediaPlayer* sonidoGolpe;
+    QAudioOutput* salidaGolpe;
+    QTimer* limiteSonidoGolpe;
 
     double sx = 1.0;
     double sy = 1.0;
@@ -77,6 +97,7 @@ private:
     QGraphicsPixmapItem* fondoBanco = nullptr;
     bool fondoAlarmaActivado = false;
     QVector<QGraphicsPixmapItem*> laserItems;
+    QVector<QGraphicsPixmapItem*> lasersSueloItems;
     QVector<QGraphicsPixmapItem*> escalerasItems;
     QVector<SpriteAnimado*> itemsItems;
     QPointF ultimaPosGuardia;

@@ -142,6 +142,7 @@ void GestorJuego::tickNivel1(double dt) {
     const int botinAntes = n1->obtenerBotinRecolectado();
     const bool bananaAntes = n1->obtenerMinion().tieneBananaActiva();
     const QString estadoAntes = n1->obtenerGuardia().obtenerEstadoActual();
+    const int risasAntes = n1->obtenerRisasEmitidas();
 
     // --- entrada del teclado ---
     const double direccion =
@@ -159,13 +160,20 @@ void GestorJuego::tickNivel1(double dt) {
         tiempoMartillo += dt;
         if (tiempoMartillo >= 0.5) {
             tiempoMartillo -= 0.5;
+            const int golpesAntes = n1->obtenerRuidoGolpes();
             n1->golpear();
+            if (n1->obtenerRuidoGolpes() > golpesAntes) {
+                emit golpeRealizado(n1->obtenerRuidoGolpes());
+            }
         }
     } else {
         tiempoMartillo = 0.0;
     }
 
     n1->actualizar(dt);
+    if (n1->obtenerRisasEmitidas() > risasAntes) {
+        emit minionRio();
+    }
 
     // la lógica no emite señales: aquí se traducen los cambios a señales de Qt
     if (!puertaAntes && n1->obtenerBoveda().estaAbierta()) {
