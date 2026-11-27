@@ -9,7 +9,6 @@ int main(int argc, char* argv[]) {
     GestorJuego gestor;
     VentanaJuego ventana(&gestor);
     ventana.show();
-    gestor.iniciarJuego();
 
     return aplicacion.exec();
 }

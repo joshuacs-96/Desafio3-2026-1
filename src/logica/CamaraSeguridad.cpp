@@ -40,7 +40,16 @@ void CamaraSeguridad::actualizar(double deltaTiempo) {
     anguloActual = anguloCentro + amplitud * std::sin(frecuenciaAngular * tiempoTranscurrido);
 }
 
+void CamaraSeguridad::activarAlarma() {
+    frecuenciaAngular = 3.0;
+}
+
 bool CamaraSeguridad::detecta(const Minion& minion) const {
+    // La cámara está en el tercer piso; el suelo bloquea su visión.
+    if (minion.obtenerPosicionSuelo().y() > 106.458 + 8.0) {
+        return false;
+    }
+
     QLineF lineaVision(posicion, minion.obtenerPosicion());
 
     if (lineaVision.length() > alcance) {

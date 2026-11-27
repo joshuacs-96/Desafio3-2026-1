@@ -6,7 +6,7 @@
 Nivel2Fuga::Nivel2Fuga(bool modoDificil)
     : carroPolicia(QPointF(230.0, -180.0), 70.0, 3.0),
     modoDificil(modoDificil),
-    tiempoRestante(60.0),
+    tiempoRestante(20.0),
     velocidadScroll(100.0),
     limiteInferiorPantalla(500.0),
     danoPolicia(20) {
@@ -104,16 +104,16 @@ double Nivel2Fuga::obtenerVelocidadScroll() const {
 
 void Nivel2Fuga::configurarDificultad() {
     if (modoDificil) {
-        tiempoRestante = 60.0;
-        velocidadScroll = 150.0;
+        tiempoRestante = 20.0;
+        velocidadScroll = 105.0;
         danoPolicia = 30;
         carroJugador.establecerIntegridad(70.0);
         carroPolicia.configurarSensor(110.0, 1.5);
         return;
     }
 
-    tiempoRestante = 60.0;
-    velocidadScroll = 100.0;
+    tiempoRestante = 20.0;
+    velocidadScroll = 70.0;
     danoPolicia = 20;
     carroJugador.establecerIntegridad(100.0);
     carroPolicia.configurarSensor(70.0, 3.0);

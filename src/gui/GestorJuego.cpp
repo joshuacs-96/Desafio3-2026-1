@@ -25,6 +25,7 @@ void GestorJuego::iniciarNivel(int numero) {
     miraIzquierda = false;
     capturaEnCurso = false;
     tiempoCaptura = 0.0;
+    tiempoMartillo = 0.0;
 
     if (numero == 1) {
         n2.reset();
@@ -141,6 +142,7 @@ void GestorJuego::tickNivel1(double dt) {
     const int botinAntes = n1->obtenerBotinRecolectado();
     const bool bananaAntes = n1->obtenerMinion().tieneBananaActiva();
     const QString estadoAntes = n1->obtenerGuardia().obtenerEstadoActual();
+    const int risasAntes = n1->obtenerRisasEmitidas();
 
     // --- entrada del teclado ---
     const double direccion =
@@ -153,16 +155,25 @@ void GestorJuego::tickNivel1(double dt) {
         n1->moverMinion(QPointF(direccion, 0.0), dt);
     }
 
-    golpeando = estaPresionada(Qt::Key_Space)
-                && !n1->obtenerBoveda().estaAbierta()
-                && cercaDeLaPuerta();
+    golpeando = estaPresionada(Qt::Key_Space) && n1->cercaDeObjetivo();
     if (golpeando) {
-        // fortachón: daña el doble de rápido
-        const double factor = n1->obtenerMinion().tieneBananaActiva() ? 2.0 : 1.0;
-        n1->danarPuerta(ConfigGrafica::DANIO_PUERTA_POR_SEGUNDO * factor * dt);
+        tiempoMartillo += dt;
+        if (tiempoMartillo >= 0.5) {
+            tiempoMartillo -= 0.5;
+            const int golpesAntes = n1->obtenerRuidoGolpes();
+            n1->golpear();
+            if (n1->obtenerRuidoGolpes() > golpesAntes) {
+                emit golpeRealizado(n1->obtenerRuidoGolpes());
+            }
+        }
+    } else {
+        tiempoMartillo = 0.0;
     }
 
     n1->actualizar(dt);
+    if (n1->obtenerRisasEmitidas() > risasAntes) {
+        emit minionRio();
+    }
 
     // la lógica no emite señales: aquí se traducen los cambios a señales de Qt
     if (!puertaAntes && n1->obtenerBoveda().estaAbierta()) {
@@ -187,7 +198,7 @@ void GestorJuego::tickNivel1(double dt) {
 }
 
 void GestorJuego::tickNivel2(double dt) {
-    constexpr double ACELERACION = 400.0;
+    constexpr double ACELERACION = 240.0;
 
     if (estaPresionada(Qt::Key_W) || estaPresionada(Qt::Key_Up)) {
         n2->acelerarCarro(ACELERACION * dt);

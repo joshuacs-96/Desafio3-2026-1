@@ -1,6 +1,10 @@
 #include "VentanaJuego.h"
 
 #include <QDebug>
+#include <QBitmap>
+#include <QAudioOutput>
+#include <QMediaPlayer>
+#include <QUrl>
 #include <QHBoxLayout>
 #include <QKeyEvent>
 #include <QLineF>
@@ -45,22 +49,69 @@ VentanaJuego::VentanaJuego(GestorJuego* gestor, QWidget* padre)
     vista->setBackgroundBrush(Qt::black);
     vista->viewport()->installEventFilter(this);                     // clic = coordenadas lógicas
 
-    etiquetaHud = new QLabel;
-    barraEnergia = new QProgressBar;
-    barraPrincipal = new QProgressBar;
+    panelHud = new QWidget(vista->viewport());
+    panelHud->setStyleSheet("background-color: rgba(0, 0, 0, 190); color: white; font-size: 14px;");
+    panelHud->setAttribute(Qt::WA_TransparentForMouseEvents);
+    etiquetaHud = new QLabel(panelHud);
+    etiquetaObjetivo = new QLabel(vista->viewport());
+    etiquetaObjetivo->setStyleSheet("background-color: rgba(0, 0, 0, 190); color: white; font-size: 14px; padding: 5px;");
+    etiquetaObjetivo->setAlignment(Qt::AlignCenter);
+    etiquetaObjetivo->setWordWrap(true);
+    etiquetaObjetivo->setAttribute(Qt::WA_TransparentForMouseEvents);
+    barraEnergia = new QProgressBar(panelHud);
+    barraPrincipal = new QProgressBar(panelHud);
+    barraVitalidadImagen = new QLabel(panelHud);
+    barraSoporteImagen = new QLabel(panelHud);
+    barraBovedaImagen = new QLabel(panelHud);
+    barraRuidoImagen = new QLabel(panelHud);
+    barraRuidoImagen->setFixedWidth(120);
     barraEnergia->setRange(0, 100);
     barraPrincipal->setRange(0, 100);
 
-    auto* fila = new QHBoxLayout;
+    auto* fila = new QHBoxLayout(panelHud);
     fila->addWidget(etiquetaHud, 1);
     fila->addWidget(barraEnergia);
     fila->addWidget(barraPrincipal);
+    fila->addWidget(barraVitalidadImagen);
+    fila->addWidget(barraSoporteImagen);
+    fila->addWidget(barraBovedaImagen);
+    fila->addWidget(barraRuidoImagen);
+    for (int i = 0; i < 5; ++i) {
+        QLabel* corazon = new QLabel(panelHud);
+        corazon->setFixedSize(32, 32);
+        fila->addWidget(corazon);
+        corazonesIntegridad.append(corazon);
+        corazon->hide();
+    }
 
     auto* central = new QWidget;
     auto* columna = new QVBoxLayout(central);
-    columna->addLayout(fila);
     columna->addWidget(vista, 1);
+    columna->addWidget(etiquetaObjetivo);
     setCentralWidget(central);
+    panelHud->setGeometry(10, 10, 900, 65);
+    panelHud->raise();
+
+    musicaFondo = new QMediaPlayer(this);
+    auto* salidaMusica = new QAudioOutput(this);
+    salidaMusica->setVolume(0.08);
+    musicaFondo->setAudioOutput(salidaMusica);
+    musicaFondo->setSource(QUrl("qrc:/Audios/Speed of Light.mp3"));
+    musicaFondo->setLoops(QMediaPlayer::Infinite);
+
+    sonidoRisa = new QMediaPlayer(this);
+    auto* salidaRisa = new QAudioOutput(this);
+    salidaRisa->setVolume(0.55);
+    sonidoRisa->setAudioOutput(salidaRisa);
+    sonidoRisa->setSource(QUrl("qrc:/Audios/Minions laugh sound.mp3"));
+
+    sonidoGolpe = new QMediaPlayer(this);
+    salidaGolpe = new QAudioOutput(this);
+    sonidoGolpe->setAudioOutput(salidaGolpe);
+    sonidoGolpe->setSource(QUrl("qrc:/Audios/EFECTOS DE SONIDO golpes de martillo.mp3"));
+    limiteSonidoGolpe = new QTimer(this);
+    limiteSonidoGolpe->setSingleShot(true);
+    connect(limiteSonidoGolpe, &QTimer::timeout, sonidoGolpe, &QMediaPlayer::stop);
 
     // teclado: ventana -> gestor
     connect(this, &VentanaJuego::teclaPresionada, gestor, &GestorJuego::teclaPresionada);
@@ -69,6 +120,8 @@ VentanaJuego::VentanaJuego(GestorJuego* gestor, QWidget* padre)
     // juego: gestor -> ventana
     connect(gestor, &GestorJuego::nivelIniciado, this, &VentanaJuego::construirNivel);
     connect(gestor, &GestorJuego::estadoActualizado, this, &VentanaJuego::actualizarVista);
+    connect(gestor, &GestorJuego::minionRio, this, &VentanaJuego::reproducirRisa);
+    connect(gestor, &GestorJuego::golpeRealizado, this, &VentanaJuego::reproducirGolpe);
 
     // En cola, para que los mensajes no se muestren dentro del tick del temporizador
     connect(gestor, &GestorJuego::nivelCompletado, this, &VentanaJuego::mostrarFinDeNivel,
@@ -79,15 +132,80 @@ VentanaJuego::VentanaJuego(GestorJuego* gestor, QWidget* padre)
             Qt::QueuedConnection);
 
     resize(960, 700);
+    mostrarMenu();
+}
+
+void VentanaJuego::reproducirRisa() {
+    sonidoRisa->stop();
+    sonidoRisa->setPosition(0);
+    sonidoRisa->play();
+}
+
+void VentanaJuego::reproducirGolpe(int golpesConsecutivos) {
+    float volumen = golpesConsecutivos == 1 ? 0.85f
+                    : (golpesConsecutivos == 2 ? 0.95f : 1.0f);
+    salidaGolpe->setVolume(volumen);
+    sonidoGolpe->stop();
+    sonidoGolpe->play();
+    sonidoGolpe->setPosition(0);
+    limiteSonidoGolpe->start(400);
+}
+
+void VentanaJuego::mostrarMenu() {
+    enMenu = true;
+    panelHud->hide();
+    etiquetaObjetivo->hide();
+    statusBar()->clearMessage();
+    escena->clear();
+    QPixmap fondo(":/Sprits d3/escenarios/Menu_de_inico.jpg");
+    escena->addPixmap(fondo);
+    escena->setSceneRect(fondo.rect());
+    vista->fitInView(escena->sceneRect(), Qt::KeepAspectRatio);
+    // El tamaño final de la vista se conoce al terminar de mostrar la ventana.
+    QTimer::singleShot(0, this, [this]() {
+        if (enMenu) {
+            vista->fitInView(escena->sceneRect(), Qt::KeepAspectRatio);
+        }
+    });
+}
+
+void VentanaJuego::iniciarNivelDesdeMenu(int numero) {
+    if (numero == 2) {
+        QMessageBox seleccion(this);
+        seleccion.setWindowTitle("Dificultad de la fuga");
+        seleccion.setText("Elige la dificultad del Nivel 2");
+        seleccion.addButton("Fácil", QMessageBox::AcceptRole);
+        QPushButton* dificil = seleccion.addButton("Difícil", QMessageBox::AcceptRole);
+        seleccion.exec();
+        if (!seleccion.clickedButton()) return;
+        gestor->establecerDificultad(seleccion.clickedButton() == dificil);
+    }
+    enMenu = false;
+    panelHud->show();
+    gestor->iniciarNivel(numero);
+    setFocus();
+}
+
+void VentanaJuego::actualizarBarra(QLabel* etiqueta, int columna, double proporcion) {
+    static const QPixmap hoja(":/Sprits d3/objetos_N1/barras_valores.png");
+    // Las filas corresponden a 100, 75, 50, 25 y 0 por ciento.
+    int fila = qBound(0, qRound((1.0 - proporcion) * 4.0), 4);
+    const int x[] = {125, 535, 930};
+    const int y[] = {0, 160, 320, 480, 640};
+    QPixmap barra = hoja.copy(x[columna], y[fila], 405, 100);
+    barra.setMask(barra.createMaskFromColor(Qt::white, Qt::MaskInColor));
+    etiqueta->setPixmap(barra.scaled(135, 34, Qt::KeepAspectRatio, Qt::FastTransformation));
 }
 
 void VentanaJuego::keyPressEvent(QKeyEvent* evento) {
+    if (enMenu) return;
     if (!evento->isAutoRepeat()) {
         emit teclaPresionada(evento->key());
     }
 }
 
 void VentanaJuego::keyReleaseEvent(QKeyEvent* evento) {
+    if (enMenu) return;
     if (!evento->isAutoRepeat()) {
         emit teclaSoltada(evento->key());
     }
@@ -96,6 +214,7 @@ void VentanaJuego::keyReleaseEvent(QKeyEvent* evento) {
 void VentanaJuego::resizeEvent(QResizeEvent* evento) {
     QMainWindow::resizeEvent(evento);
     vista->fitInView(escena->sceneRect(), Qt::KeepAspectRatio);
+    panelHud->setGeometry(10, 10, qMax(1, vista->viewport()->width() - 20), 65);
 }
 
 // Un clic sobre el juego imprime las coordenadas LÓGICAS: úsalas para ubicar pisos,
@@ -104,6 +223,17 @@ bool VentanaJuego::eventFilter(QObject* objeto, QEvent* evento) {
     if (objeto == vista->viewport() && evento->type() == QEvent::MouseButtonPress) {
         auto* clic = static_cast<QMouseEvent*>(evento);
         const QPointF enEscena = vista->mapToScene(clic->pos());
+        if (enMenu) {
+            if (QRectF(110, 265, 290, 75).contains(enEscena)
+                || QRectF(520, 260, 70, 90).contains(enEscena)) {
+                iniciarNivelDesdeMenu(1);
+            } else if (QRectF(110, 360, 290, 80).contains(enEscena)) {
+                close();
+            } else if (QRectF(615, 260, 75, 90).contains(enEscena)) {
+                iniciarNivelDesdeMenu(2);
+            }
+            return true;
+        }
         qDebug() << "Coordenadas lógicas:" << enEscena.x() / sx << enEscena.y() / sy;
     }
     return QMainWindow::eventFilter(objeto, evento);
@@ -137,13 +267,27 @@ void VentanaJuego::usarAnimacion(SpriteAnimado* sprite, const Animacion& animaci
 // ---------------------------------------------------------------- construcción
 
 void VentanaJuego::construirNivel(int numero) {
+    enMenu = false;
+    limiteSonidoGolpe->stop();
+    sonidoGolpe->stop();
+    if (musicaFondo->playbackState() != QMediaPlayer::PlayingState) {
+        musicaFondo->play();
+    }
+    panelHud->show();
+    etiquetaObjetivo->show();
+    etiquetaObjetivo->raise();
     escena->clear();                       // destruye todos los items
     minionItem = guardiaItem = camaraItem = puertaItem = iconoItem = nullptr;
+    soporteItem = nullptr;
     policiaItem = carroItem = nullptr;
     conoItem = nullptr;
     letreroItem = nullptr;
     fondoA = fondoB = nullptr;
+    fondoBanco = nullptr;
+    fondoAlarmaActivado = false;
     laserItems.clear();
+    lasersSueloItems.clear();
+    escalerasItems.clear();
     itemsItems.clear();
     obstaculosItems.clear();
     tiempoAnimacion = 0.0;
@@ -164,101 +308,28 @@ void VentanaJuego::construirNivel1() {
     const QPixmap fondo = tira(Anim::FONDO_NIVEL1);
     escena->setSceneRect(fondo.rect());
     auto* fondoItem = escena->addPixmap(fondo);
+    fondoBanco = fondoItem;
     fondoItem->setZValue(0);
     fondoItem->setFlag(QGraphicsItem::ItemClipsChildrenToShape);
     sx = fondo.width() / ANCHO_LOGICO_1;
     sy = fondo.height() / ALTO_LOGICO_1;
 
-    // Crear varios rayos laser pequeños en el segundo piso.
-    QPixmap laser = tira(Anim::RAYO_LASER);
-
-    // Girar el sprite vertical 90 grados.
-    laser = laser.transformed(
-        QTransform().rotate(90),
-        Qt::FastTransformation
-        );
-
-    // Reducir el tamaño de cada rayo.
-    laser = laser.scaled(
-        10 * sx,
-        20 * sy,
-        Qt::IgnoreAspectRatio,
-        Qt::SmoothTransformation
-        );
-    // Posiciones de los rayos:
-    // x = posicion horizontal.
-    // altura = distancia por encima del suelo.
-    // Posiciones de los rayos en los dos primeros pisos.
-    // Cada elemento contiene: X, altura del piso, altura del rayo.
-    struct PosicionLaser {
-        double x;
-        double pisoY;
-        double altura;
+    // Los tres rayos verticales corresponden a los de la lógica del nivel.
+    const QPointF posicionesLaser[] = {
+        QPointF(250.0, 106.458),
+        QPointF(355.0, 106.458),
+        QPointF(350.0, 206.654)
     };
+    const QPixmap laser = tira(Anim::RAYO_LASER).scaled(
+        static_cast<int>(8 * sx), static_cast<int>(99 * sy),
+        Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 
-    const PosicionLaser posicionesLaser[] = {
-        // PRIMER PISO
-        {88.0, 305.597, 0.0},
-        {104.0, 305.597, 0.0},
-
-        {145.0, 305.597, 48.0},
-        {161.0, 305.597, 48.0},
-
-        {202.0, 305.597, 0.0},
-        {218.0, 305.597, 0.0},
-
-        // SEGUNDO PISO
-        {88.0, 206.654, 0.0},
-        {104.0, 206.654, 0.0},
-
-        {145.0, 206.654, 48.0},
-        {161.0, 206.654, 48.0},
-
-        {202.0, 206.654, 0.0},
-        {218.0, 206.654, 0.0}
-    };
-
-    for (const PosicionLaser& dato : posicionesLaser) {
-
-        QGraphicsPixmapItem* nuevoLaser = escena->addPixmap(laser);
-
-        nuevoLaser->setOffset(
-            -laser.width() / 2.0,
-            -laser.height() / 2.0
-            );
-
-        nuevoLaser->setPos(
-            aEscena(QPointF(
-                dato.x,
-                dato.pisoY - dato.altura
-                ))
-            );
-
-        nuevoLaser->setZValue(2.5);
-
-        laserItems.append(nuevoLaser);
-    }
-
-    for (const PosicionLaser& dato : posicionesLaser) {
-
-        QGraphicsPixmapItem* nuevoLaser = escena->addPixmap(laser);
-
-        nuevoLaser->setOffset(
-            -laser.width() / 2.0,
-            -laser.height() / 2.0
-            );
-
-        // Ubicar el rayo a la altura correspondiente.
-        nuevoLaser->setPos(
-            aEscena(QPointF(
-                dato.x,
-                206.654 - dato.pisoY
-                ))
-            );
-
-        nuevoLaser->setZValue(2.5);
-
-        laserItems.append(nuevoLaser);
+    for (const QPointF& posicion : posicionesLaser) {
+        QGraphicsPixmapItem* item = escena->addPixmap(laser);
+        item->setOffset(-laser.width() / 2.0, -laser.height());
+        item->setPos(aEscena(posicion + QPointF(0.0, 5.0)));
+        item->setZValue(2.5);
+        laserItems.append(item);
     }
 
     // marca TEMPORAL de la salida (bórrala cuando tu fondo ya la dibuje)
@@ -283,11 +354,14 @@ void VentanaJuego::construirNivel1() {
             item->setOffset(-item->pixmap().width() / 2.0, -item->pixmap().height());
             item->setPos(abajo);
             item->setZValue(0.5);
+            escalerasItems.append(item);
         }
     }
 
     puertaItem = crearSprite(Anim::PUERTA_CERRADA, TAM_PUERTA, true, 1);
     puertaItem->setPos(aEscena(n->obtenerPosicionPuerta()));
+    soporteItem = crearSprite(Anim::SOPORTE, QSizeF(220, 220), true, 2);
+    soporteItem->setPos(aEscena(n->obtenerPosicionSoporte() + QPointF(0.0, 5.0)));
 
     // botín y bananas: cada uno se dibuja según su tipo
     for (const ItemRecolectable& item : n->obtenerItems()) {
@@ -325,10 +399,17 @@ void VentanaJuego::construirNivel1() {
     letreroItem->setVisible(false);
 
     barraEnergia->setVisible(true);
-    barraEnergia->setFormat("Energía %p%");
-    barraPrincipal->setFormat("Puerta %p%");
-    statusBar()->showMessage("A / D: mover   |   W: saltar o subir escalera   |   S: bajar escalera   |   "
-                             "ESPACIO (mantener): golpear la puerta   |   Las bananas dan fuerza");
+    barraEnergia->setFormat("Vitalidad %p%");
+    barraPrincipal->setFormat("Bóveda %p%");
+    barraEnergia->hide();
+    barraPrincipal->hide();
+    barraVitalidadImagen->show();
+    barraSoporteImagen->show();
+    barraBovedaImagen->show();
+    barraRuidoImagen->show();
+    for (QLabel* corazon : corazonesIntegridad) corazon->hide();
+    etiquetaHud->show();
+    statusBar()->clearMessage();
 }
 
 void VentanaJuego::construirNivel2() {
@@ -354,14 +435,25 @@ void VentanaJuego::construirNivel2() {
     carroItem = crearSprite(Anim::CARRO_NORMAL, TAM_CARRO, false, 4);
 
     barraEnergia->setVisible(false);
+    barraPrincipal->hide();
+    for (QLabel* corazon : corazonesIntegridad) corazon->show();
+    barraVitalidadImagen->hide();
+    barraSoporteImagen->hide();
+    barraBovedaImagen->hide();
+    barraRuidoImagen->hide();
     barraPrincipal->setFormat("Integridad %p%");
-    statusBar()->showMessage("W: acelerar   |   S: frenar   |   A / D: girar   |   "
-                             "Aguanta hasta que se acabe el tiempo");
+    etiquetaHud->hide();
+    statusBar()->clearMessage();
 }
 
 // ---------------------------------------------------------------- actualización
 
 void VentanaJuego::actualizarVista(double dt) {
+    if (gestor->numeroNivel() != 1 || !gestor->minionGolpeando()
+        || gestor->faseCaptura() != 0) {
+        limiteSonidoGolpe->stop();
+        sonidoGolpe->stop();
+    }
     if (gestor->numeroNivel() == 1) {
         actualizarNivel1(dt);
     } else {
@@ -379,7 +471,54 @@ void VentanaJuego::actualizarNivel1(double dt) {
     tiempoAnimacion += dt;
     const Minion& minion = n->obtenerMinion();
     const Boveda& boveda = n->obtenerBoveda();
+    if (boveda.estaAbierta() && lasersSueloItems.isEmpty()) {
+        QPixmap laserSuelo = tira(Anim::RAYO_LASER)
+                                 .transformed(QTransform().rotate(90))
+                                 .scaled(static_cast<int>(22 * sx), static_cast<int>(12 * sy),
+                                         Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+        // Mantiene visible el centro luminoso al reducir el sprite original.
+        QPainter pintorLaser(&laserSuelo);
+        pintorLaser.setPen(QPen(QColor(255, 240, 230), 2));
+        pintorLaser.drawLine(laserSuelo.width() / 8, laserSuelo.height() / 2,
+                             laserSuelo.width() * 7 / 8, laserSuelo.height() / 2);
+        pintorLaser.end();
+        for (const QPointF& posicion : n->obtenerLasersSuelo()) {
+            QGraphicsPixmapItem* item = escena->addPixmap(laserSuelo);
+            item->setOffset(-laserSuelo.width() / 2.0, -laserSuelo.height());
+            item->setPos(aEscena(posicion));
+            item->setZValue(3);
+            lasersSueloItems.append(item);
+        }
+    }
+    if (boveda.estaAbierta() && fondoBanco && !fondoAlarmaActivado) {
+        QPixmap fondoAlarma(":/Sprits d3/escenarios/Escenario_N1_alarma.jpg");
+        if (!fondoAlarma.isNull()) {
+            fondoBanco->setPixmap(fondoAlarma.scaled(fondoBanco->pixmap().size()));
+            fondoAlarmaActivado = true;
+            const QPixmap escaleraRoja = tira(Anim::ESCALERA_ROJA);
+            for (QGraphicsPixmapItem* escalera : escalerasItems) {
+                if (std::abs(escalera->pos().x() / sx - 320.0) < 1.0
+                    && std::abs(escalera->pos().y() / sy - 305.597) < 1.0) {
+                    escalera->setVisible(false);
+                } else {
+                    escalera->setPixmap(escaleraRoja.scaled(escalera->pixmap().size(),
+                                                             Qt::IgnoreAspectRatio,
+                                                             Qt::FastTransformation));
+                }
+            }
+        }
+    }
     const bool fuerte = minion.tieneBananaActiva();
+    usarAnimacion(soporteItem, boveda.estaAbierta() ? Anim::SOPORTE_DESTRUIDO_ROJO
+                      : (n->soporteDestruido() ? Anim::SOPORTE_DESTRUIDO : Anim::SOPORTE));
+    soporteItem->fijarTamano(n->soporteDestruido() ? QSizeF(280, 280) : QSizeF(220, 220));
+    soporteItem->setPos(aEscena(n->obtenerPosicionSoporte()
+                                 + QPointF(0.0, n->soporteDestruido() ? 9.0 : 5.0)));
+    if (laserItems.size() == 3) {
+        laserItems[0]->setVisible(!n->soporteDestruido());
+        laserItems[1]->setVisible(!boveda.estaAbierta());
+        laserItems[2]->setVisible(!boveda.estaAbierta());
+    }
 
     // --- Kevin: la animación depende de lo que está haciendo ---
     minionItem->fijarTamano(fuerte ? TAM_MINION_FUERTE : TAM_MINION);
@@ -420,6 +559,7 @@ void VentanaJuego::actualizarNivel1(double dt) {
     const QString estado = guardia.obtenerEstadoActual();
     const bool persiguiendo = estado == "Perseguir";
     const bool investigando = estado == "Investigar";
+    const bool alerta = estado == "Alerta";
     const QPointF posGuardia = guardia.obtenerPosicion();
     const bool seMueve = posGuardia != ultimaPosGuardia;
     const bool atrapando = gestor->faseCaptura() != 0
@@ -430,7 +570,7 @@ void VentanaJuego::actualizarNivel1(double dt) {
     if (atrapando) {
         usarAnimacion(guardiaItem, Anim::POLICIA_ATRAPANDO);
     } else if (seMueve) {
-        usarAnimacion(guardiaItem, (persiguiendo || investigando) ? Anim::POLICIA_CORRER
+        usarAnimacion(guardiaItem, (persiguiendo || investigando || alerta) ? Anim::POLICIA_CORRER
                                                                   : Anim::POLICIA_CAMINAR);
     } else {
         usarAnimacion(guardiaItem, Anim::POLICIA_QUIETO);
@@ -443,8 +583,8 @@ void VentanaJuego::actualizarNivel1(double dt) {
     ultimaPosGuardia = posGuardia;
     guardiaItem->setPos(aEscena(posGuardia));
 
-    iconoItem->setVisible(persiguiendo || investigando);       // "!" persigue, "?" investiga
-    if (persiguiendo) {
+    iconoItem->setVisible(persiguiendo || investigando || alerta);
+    if (persiguiendo || alerta) {
         usarAnimacion(iconoItem, Anim::SIGNO_ADMIRACION);
     } else if (investigando) {
         usarAnimacion(iconoItem, Anim::SIGNO_INTERROGACION);
@@ -465,8 +605,14 @@ void VentanaJuego::actualizarNivel1(double dt) {
                               + QPointF(std::cos(angulo), -std::sin(angulo)) * camara.obtenerAlcance();
         cono << aEscena(punta);
     }
-    conoItem->setPolygon(cono);
-    conoItem->setBrush(camara.detecta(minion) ? QColor(255, 40, 40, 90) : QColor(255, 255, 0, 70));
+    QPolygonF limitePiso;
+    limitePiso << aEscena(QPointF(0.0, 0.0))
+               << aEscena(QPointF(400.0, 0.0))
+               << aEscena(QPointF(400.0, 106.458))
+               << aEscena(QPointF(0.0, 106.458));
+    conoItem->setPolygon(cono.intersected(limitePiso));
+    conoItem->setBrush((boveda.estaAbierta() || camara.detecta(minion))
+                           ? QColor(255, 40, 40, 90) : QColor(255, 255, 0, 70));
 
     // --- puerta: cerrada, dañada o abierta ---
     const double proporcion = boveda.obtenerResistencia() / boveda.obtenerResistenciaMaxima();
@@ -496,22 +642,42 @@ void VentanaJuego::actualizarNivel1(double dt) {
 
     // --- HUD: siempre dice qué hacer ---
     QString objetivo;
-    if (!boveda.estaAbierta()) {
+    if (!n->soporteDestruido()) {
+        objetivo = "Sube al piso 2 y destruye el soporte del láser";
+    } else if (!boveda.estaAbierta()) {
         objetivo = "Sube al piso 3 y mantén ESPACIO junto a la puerta de la bóveda";
     } else if (!n->puedeEscapar()) {
         objetivo = "¡Entra a la bóveda y recoge el botín (oro y bolsas)!";
     } else {
-        objetivo = "¡Corre a la salida!";
+        objetivo = "¡Corre a la salida! Ten cuidado con los láseres del piso.";
     }
 
-    etiquetaHud->setText(QString("Nivel 1  |  Vidas: %1  |  Botín: %2/%3  |  Policía: %4\n%5")
+    int botinTotal = 0;
+    for (const ItemRecolectable& item : n->obtenerItems()) {
+        if (item.obtenerTipo() != "Banana") botinTotal += item.obtenerValor();
+    }
+    etiquetaHud->setText(QString("Nivel 1  |  Vidas: %1  |  Botín: %2/%3  |  Policía: %4  |  Ruido: %5")
                              .arg(minion.obtenerVidas())
                              .arg(n->obtenerBotinRecolectado())
-                             .arg(boveda.obtenerBotinMinimo())
+                             .arg(botinTotal)
                              .arg(estado)
-                             .arg(objetivo));
+                             .arg(n->obtenerRuidoGolpes()));
+    etiquetaObjetivo->setText(objetivo);
     barraEnergia->setValue(minion.obtenerEnergia());
     barraPrincipal->setValue(static_cast<int>(100.0 * proporcion));
+    actualizarBarra(barraVitalidadImagen, 0, minion.obtenerEnergia() / 100.0);
+    actualizarBarra(barraSoporteImagen, 1, n->obtenerResistenciaSoporte() / 40.0);
+    actualizarBarra(barraBovedaImagen, 2, proporcion);
+
+    static const QPixmap hojaRuido(":/Sprits d3/objetos_N1/barra_ruido.png");
+    int ruido = n->obtenerRuidoGolpes();
+    int yRuido = ruido >= 3 ? 0 : (ruido == 2 ? 252 : 493);
+    QPixmap indicador = hojaRuido.copy(0, yRuido, 1102, 185);
+    indicador.setMask(indicador.createMaskFromColor(Qt::white, Qt::MaskInColor));
+    barraRuidoImagen->setPixmap(indicador.scaled(120, 24, Qt::KeepAspectRatio, Qt::FastTransformation));
+    if (ruido == 0) {
+        barraRuidoImagen->clear();
+    }
 }
 
 void VentanaJuego::actualizarNivel2(double dt) {
@@ -552,10 +718,21 @@ void VentanaJuego::actualizarNivel2(double dt) {
     }
 
     // --- HUD ---
-    etiquetaHud->setText(QString("Nivel 2  |  Tiempo: %1 s  |  Botín: %2\nAguanta la persecución hasta que se acabe el tiempo")
+    etiquetaObjetivo->setText(QString("Nivel 2  |  Tiempo: %1 s  |  Botín: %2  |  Aguanta hasta que se acabe el tiempo")
                              .arg(qCeil(n->obtenerTiempoRestante()))
                              .arg(carro.obtenerBotinActual()));
     barraPrincipal->setValue(static_cast<int>(integridad));
+    static const QPixmap hojaCorazones(":/Sprits d3/objetos_N2/corazones.png");
+    QPixmap lleno = hojaCorazones.copy(0, 0, 60, 68);
+    QPixmap vacio = hojaCorazones.copy(186, 72, 60, 68);
+    lleno.setMask(lleno.createMaskFromColor(Qt::white, Qt::MaskInColor));
+    vacio.setMask(vacio.createMaskFromColor(Qt::white, Qt::MaskInColor));
+    int cantidadLlena = qBound(0, qCeil(integridad / 20.0), 5);
+    for (int i = 0; i < corazonesIntegridad.size(); ++i) {
+        const QPixmap& imagen = i < cantidadLlena ? lleno : vacio;
+        corazonesIntegridad[i]->setPixmap(imagen.scaled(32, 32, Qt::KeepAspectRatio,
+                                                        Qt::FastTransformation));
+    }
 }
 
 // ---------------------------------------------------------------- fin de nivel
@@ -578,8 +755,12 @@ void VentanaJuego::mostrarFinDeNivel(int numero) {
 }
 
 void VentanaJuego::mostrarDerrota(int numero) {
+    const bool murio = numero == 1 && gestor->nivel1()
+                       && gestor->nivel1()->murioPorLaser();
+    const QString mensaje = murio ? "Moriste. ¿Quieres reintentar el nivel?"
+                                  : "Te atraparon. ¿Quieres reintentar el nivel?";
     const auto respuesta = QMessageBox::question(this, "Derrota",
-                                                 "Te atraparon. ¿Quieres reintentar el nivel?");
+                                                 mensaje);
     if (respuesta == QMessageBox::Yes) {
         gestor->iniciarNivel(numero);
     } else {

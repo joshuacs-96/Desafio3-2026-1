@@ -19,12 +19,12 @@ void CarroJugador::acelerar(double cantidad) {
 }
 
 void CarroJugador::frenar(double cantidad) {
-    velocidad.setY(std::min(0.0, velocidad.y() + cantidad));
+    velocidad.setY(velocidad.y() + cantidad);
 }
 
 void CarroJugador::girar(double direccion) {
     double controlDireccion = derrapando ? 0.35 : 1.0;
-    velocidad.setX(direccion * 180.0 * controlDireccion);
+    velocidad.setX(direccion * 120.0 * controlDireccion);
 }
 
 void CarroJugador::recibirDanio(int dano) {
@@ -63,7 +63,7 @@ void CarroJugador::actualizar(double deltaTiempo) {
 
     // roce con la vía: sin esto la velocidad vertical crece sin límite
     velocidad.setY(velocidad.y() * std::exp(-1.5 * deltaTiempo));
-    velocidad.setY(std::clamp(velocidad.y(), -220.0, 220.0));
+    velocidad.setY(std::clamp(velocidad.y(), -150.0, 150.0));
 
     posicion += velocidad * deltaTiempo;
 }

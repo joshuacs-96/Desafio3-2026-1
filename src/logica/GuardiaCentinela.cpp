@@ -3,6 +3,8 @@
 #include <QLineF>
 #include <QRandomGenerator>
 #include <QtGlobal>
+#include <algorithm>
+#include <cmath>
 
 #include "Edificio.h"
 
@@ -14,7 +16,7 @@ GuardiaCentinela::GuardiaCentinela(const QPointF& posicionInicial,
     ultimaPosicionRuido(posicionInicial),
     tasaAprendizaje(0.25),
     hayRuidoPendiente(false),
-    velocidad(90.0),
+    velocidad(45.5),
     ultimaPosicionVista(posicionInicial) {
 }
 
@@ -22,21 +24,51 @@ void GuardiaCentinela::establecerEdificio(const Edificio* nuevoEdificio) {
     edificio = nuevoEdificio;
 }
 
+void GuardiaCentinela::activarMovimiento() {
+    movimientoActivado = true;
+}
+
+void GuardiaCentinela::activarAlarma(const QPointF& lugar) {
+    alarmaActiva = true;
+    ultimaPosicionRuido = lugar;
+    hayRuidoPendiente = true;
+    estadoActual = "Investigar";
+    limpiarRutaConservandoEscalera();
+    activarMovimiento();
+}
+
+void GuardiaCentinela::establecerPosicion(const QPointF& nuevaPosicion) {
+    posicion = nuevaPosicion;
+}
+
 bool GuardiaCentinela::percibir(const QPointF& posicionRuido, double intensidad) {
     QLineF distancia(posicion, posicionRuido);
 
-    if (distancia.length() > radioPercepcion || intensidad <= 0.0) {
+    double alcance = radioPercepcion;
+    if (edificio) {
+        int diferenciaPisos = std::abs(edificio->pisoDe(posicion)
+                                       - edificio->pisoDe(posicionRuido));
+        alcance *= std::pow(0.5, diferenciaPisos);
+    }
+
+    if (distancia.length() > alcance || intensidad <= 0.0) {
         return false;
     }
 
+    bool nuevoObjetivo = !hayRuidoPendiente
+                         || QLineF(ultimaPosicionRuido, posicionRuido).length() > 10.0;
     ultimaPosicionRuido = posicionRuido;
     hayRuidoPendiente = true;
-    ruta.clear();                       // nuevo objetivo: se vuelve a planificar
+    if (nuevoObjetivo) {
+        limpiarRutaConservandoEscalera();
+        usarRutaAlternativa = QRandomGenerator::global()->generateDouble() >= probabilidadRutaOptima;
+    }
 
     return true;
 }
 
-void GuardiaCentinela::ver(const QPointF& posicionMinion) {
+void GuardiaCentinela::ver(const QPointF& posicionMinion, bool usandoEscalera,
+                           const QPointF& destinoEscalera) {
     viendoMinion = false;
 
     if (!edificio) {
@@ -47,20 +79,28 @@ void GuardiaCentinela::ver(const QPointF& posicionMinion) {
 
     if (mismoPiso && QLineF(posicion, posicionMinion).length() <= radioVision) {
         viendoMinion = true;
-        ultimaPosicionVista = posicionMinion;
+        ultimaPosicionVista = usandoEscalera ? destinoEscalera : posicionMinion;
+        tiempoDesdeUltimaVista = 0.0;
     }
 }
 
 void GuardiaCentinela::decidir() {
     if (viendoMinion) {
+        if (estadoActual != "Perseguir") {
+            usarRutaAlternativa = QRandomGenerator::global()->generateDouble() >= probabilidadRutaOptima;
+            limpiarRutaConservandoEscalera();
+        }
         estadoActual = "Perseguir";
         return;
     }
 
     if (estadoActual == "Perseguir") {          // lo perdió de vista: va a donde lo vio
+        if (tiempoDesdeUltimaVista < 2.5) {
+            return;
+        }
         ultimaPosicionRuido = ultimaPosicionVista;
         hayRuidoPendiente = true;
-        ruta.clear();
+        limpiarRutaConservandoEscalera();
     }
 
     if (hayRuidoPendiente) {
@@ -69,13 +109,34 @@ void GuardiaCentinela::decidir() {
 }
 
 void GuardiaCentinela::actuar(double deltaTiempo) {
+    if (!movimientoActivado) {
+        return;
+    }
+
+    if (estadoActual == "Perseguir" && !viendoMinion) {
+        tiempoDesdeUltimaVista += deltaTiempo;
+    }
+
+    // Termina el tramo vertical antes de recalcular por una alerta o persecución.
+    if (estaEnEscalera()) {
+        avanzarPorRuta(deltaTiempo, velocidad);
+        return;
+    }
+
     if (estadoActual == "Perseguir") {
-        planificar(ultimaPosicionVista);            // Kevin se mueve: se recalcula
+        patrullaInicialPendiente = false;
+        // En una escalera se conserva la ruta hasta terminar el trayecto.
+        if (ruta.isEmpty() || !edificio
+            || (edificio->pisoDe(posicion) == edificio->pisoDe(ultimaPosicionVista)
+                && std::abs(posicion.y() - edificio->alturaDelPiso(edificio->pisoDe(posicion))) < 1.0)) {
+            planificar(ultimaPosicionVista);
+        }
         avanzarPorRuta(deltaTiempo, velocidad * 1.4);
         return;
     }
 
     if (estadoActual == "Investigar") {
+        patrullaInicialPendiente = false;
         if (ruta.isEmpty()) {
             planificar(ultimaPosicionRuido);
         }
@@ -84,8 +145,8 @@ void GuardiaCentinela::actuar(double deltaTiempo) {
 
         if (ruta.isEmpty()) {                       // llegó a donde sonó
             hayRuidoPendiente = false;
-            estadoActual = "Patrullar";
-            espera = 1.0;
+            estadoActual = alarmaActiva ? "Alerta" : "Patrullar";
+            espera = alarmaActiva ? 0.0 : 1.0;
         }
         return;
     }
@@ -97,25 +158,49 @@ void GuardiaCentinela::actuar(double deltaTiempo) {
     }
 
     if (ruta.isEmpty()) {
-        const QString zona = elegirZonaDePatrulla();
+        QString zona;
+        if (patrullaInicialPendiente && posicionesZonas.contains("Piso 3")) {
+            zona = "Piso 3";
+            patrullaInicialPendiente = false;
+        } else {
+            zona = elegirZonaDePatrulla();
+        }
         if (zona.isEmpty()) {
             return;
         }
+        usarRutaAlternativa = QRandomGenerator::global()->generateDouble() >= probabilidadRutaOptima;
         planificar(posicionesZonas.value(zona));
     }
 
-    avanzarPorRuta(deltaTiempo, velocidad * 0.65);
+    avanzarPorRuta(deltaTiempo, velocidad * (alarmaActiva ? 1.0 : 0.65));
 
     if (ruta.isEmpty()) {
-        espera = 1.5;                               // se detiene un momento en cada punto
+        espera = alarmaActiva ? 0.0 : 1.5;
     }
 }
 
 void GuardiaCentinela::planificar(const QPointF& destino) {
     if (edificio) {
-        ruta = edificio->planificarRuta(posicion, destino);
+        ruta = edificio->planificarRuta(posicion, destino, usarRutaAlternativa);
     } else {
         ruta = QVector<QPointF>{destino};
+    }
+}
+
+bool GuardiaCentinela::estaEnEscalera() const {
+    if (!edificio || ruta.isEmpty()) return false;
+    double alturaPiso = edificio->alturaDelPiso(edificio->pisoDe(posicion));
+    return std::abs(posicion.y() - alturaPiso) > 0.01
+           && std::abs(posicion.x() - ruta.first().x()) < 0.01;
+}
+
+void GuardiaCentinela::limpiarRutaConservandoEscalera() {
+    if (estaEnEscalera()) {
+        QPointF finEscalera = ruta.first();
+        ruta.clear();
+        ruta.append(finEscalera);
+    } else {
+        ruta.clear();
     }
 }
 
@@ -174,14 +259,20 @@ void GuardiaCentinela::aprender(const QString& zona, bool encontroMinion) {
     double valorActual = mapaCalor.value(zona, 0.0);
 
     mapaCalor[zona] = valorActual + tasaAprendizaje * (recompensa - valorActual);
+    if (encontroMinion) {
+        probabilidadRutaOptima = std::min(0.90, probabilidadRutaOptima + 0.02);
+    }
 }
 
 void GuardiaCentinela::reiniciar(const QPointF& nuevaPosicion) {
     posicion = nuevaPosicion;
-    estadoActual = "Patrullar";
+    estadoActual = alarmaActiva ? "Alerta" : "Patrullar";
     ruta.clear();
     hayRuidoPendiente = false;
     viendoMinion = false;
+    tiempoDesdeUltimaVista = 0.0;
+    movimientoActivado = true;
+    patrullaInicialPendiente = false;
     espera = 2.0;                       // margen para que Kevin no sea atrapado dos veces seguidas
 }
 
