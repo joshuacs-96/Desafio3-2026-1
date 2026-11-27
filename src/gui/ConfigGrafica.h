@@ -16,8 +16,8 @@ namespace ConfigGrafica {
 // Tamaño del "mundo" que usa la lógica
 constexpr double ANCHO_LOGICO_1 = 400.0;
 constexpr double ALTO_LOGICO_1  = 320.0;
-constexpr double ANCHO_LOGICO_2 = 400.0;
-constexpr double ALTO_LOGICO_2  = 500.0;
+constexpr double ANCHO_LOGICO_2 = 640.0;
+constexpr double ALTO_LOGICO_2  = 360.0;
 
 constexpr double RADIO_INTERACCION_PUERTA = 60.0;
 constexpr double DANIO_PUERTA_POR_SEGUNDO = 20.0;
@@ -30,6 +30,10 @@ constexpr bool GUARDIA_MIRA_DERECHA = true;
 constexpr bool DIBUJAR_ESCALERAS = true;
 constexpr double ANCHO_ESCALERA = 70.0;
 
+//nivel2:carretera horizontal
+constexpr double ROTACION_CARROS = 0.0;       // grados: 0 si tus PNG miran a la derecha, 90 si miran hacia arriba
+constexpr bool SCROLL_FONDO_NIVEL2 = true;    // false si tu fondo no se puede repetir sin costura
+
 // Tamaño de cada sprite en la escena (px). El dibujo se ajusta a esa caja sin deformarse.
 inline const QSize TAM_MINION(84, 84);
 inline const QSizeF TAM_MINION_FUERTE(90, 90);
@@ -37,11 +41,11 @@ inline const QSizeF TAM_GUARDIA(90, 130);
 inline const QSizeF TAM_ICONO(30, 30);
 inline const QSizeF TAM_CAMARA(48, 32);
 inline const QSizeF TAM_PUERTA(96, 128);
-inline const QSizeF TAM_BANANA(35, 35);
-inline const QSizeF TAM_LINGOTE(45, 30);
+inline const QSizeF TAM_BANANA(55, 55);
+inline const QSizeF TAM_LINGOTE(55, 40);
 inline const QSizeF TAM_BOLSA(45, 45);
-inline const QSizeF TAM_CARRO(64, 128);
-inline const QSizeF TAM_OBSTACULO(64, 64);
+inline const QSizeF TAM_CARRO(190, 310);
+inline const QSizeF TAM_OBSTACULO(140, 140);
 
 namespace Anim {
 
@@ -96,14 +100,20 @@ inline constexpr Animacion MALETIN     {"Sprits d3/objetos_N1/maletin", 1, 0.0, 
 inline constexpr Animacion CARRO_NORMAL     {"Sprits d3/objetos_N2/CarroPersecucion", 1, 0.0, 64, 128};
 inline constexpr Animacion CARRO_SEMIDANADO {"Sprits d3/objetos_N2/CarroPersecucion_semidanado", 1, 0.0, 64, 128};
 inline constexpr Animacion CARRO_DANADO     {"Sprits d3/objetos_N2/CarroPersecucion_danado", 1, 0.0, 64, 128};
-inline constexpr Animacion CARRO_POLICIA    {"Sprits d3/objetos_N2/CarroPersecucion", 1, 0.0, 64, 128};
+inline constexpr Animacion CARRO_POLICIA    {"Sprits d3/objetos_N2/Carro_Policia", 1, 0.0, 64, 128};
 inline constexpr Animacion OBS_CONO     {"Sprits d3/objetos_N2/cono", 1, 0.0, 64, 64};
 inline constexpr Animacion OBS_BARRERA  {"Sprits d3/objetos_N2/cono", 1, 0.0, 96, 40};
 inline constexpr Animacion OBS_HUECO    {"Sprits d3/objetos_N2/hueco", 1, 0.0, 64, 64};
 inline constexpr Animacion OBS_ACEITE   {"Sprits d3/objetos_N2/machaAceite", 1, 0.0, 96, 96};
 inline constexpr Animacion CHISPAS      {"Sprits d3/objetos_N2/chispasChoque", 1, 0.0, 64, 64};   // (reservado)
 inline constexpr Animacion BOLSA_CALLE  {"Sprits d3/objetos_N2/bolsadebotin", 1, 0.0, 40, 40};    // (reservado)
+// Coleccionables reutilizados del Nivel 1
+inline constexpr Animacion BANANA_N2 = {"Sprits d3/objetos_N1/banana", 1, 0.0, 32, 32};
+inline constexpr Animacion LINGOTE_N2 = {"Sprits d3/objetos_N1/oro", 1, 0.0, 40, 24};
 
+// Tamaños para los coleccionables de la carretera
+inline const QSizeF TAM_BANANA_N2(38, 38);
+inline const QSizeF TAM_LINGOTE_N2(48, 32);
 }
 
 }

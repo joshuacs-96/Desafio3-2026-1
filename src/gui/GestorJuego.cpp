@@ -198,22 +198,16 @@ void GestorJuego::tickNivel1(double dt) {
 }
 
 void GestorJuego::tickNivel2(double dt) {
-    constexpr double ACELERACION = 240.0;
+    Q_UNUSED(dt);
 
-    if (estaPresionada(Qt::Key_W) || estaPresionada(Qt::Key_Up)) {
-        n2->acelerarCarro(ACELERACION * dt);
-    }
-    if (estaPresionada(Qt::Key_S) || estaPresionada(Qt::Key_Down)) {
-        n2->frenarCarro(ACELERACION * dt);
-    }
-
+    // El carro solo cambia de carril: W / ↑ sube, S / ↓ baja
     const double direccion =
-        ((estaPresionada(Qt::Key_D) || estaPresionada(Qt::Key_Right)) ? 1.0 : 0.0)
-        - ((estaPresionada(Qt::Key_A) || estaPresionada(Qt::Key_Left)) ? 1.0 : 0.0);
+        ((estaPresionada(Qt::Key_S) || estaPresionada(Qt::Key_Down)) ? 1.0 : 0.0)
+        - ((estaPresionada(Qt::Key_W) || estaPresionada(Qt::Key_Up)) ? 1.0 : 0.0);
 
-    // al soltar las teclas el carro deja de girar (salvo si está derrapando)
+    // al soltar las teclas el carro se detiene (salvo si está derrapando: ahí sigue deslizándose)
     if (direccion != 0.0 || !n2->obtenerCarroJugador().estaDerrapando()) {
-        n2->girarCarro(direccion);
+        n2->moverCarro(direccion);
     }
 
     const double integridadAntes = n2->obtenerCarroJugador().obtenerIntegridad();

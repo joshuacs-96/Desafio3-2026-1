@@ -7,6 +7,7 @@
 #include <QMainWindow>
 #include <QProgressBar>
 #include <QVector>
+#include <QGraphicsEllipseItem>
 
 #include "ConfigGrafica.h"
 #include "GestorJuego.h"
@@ -53,6 +54,8 @@ private:
     void actualizarBarra(QLabel* etiqueta, int columna, double proporcion);
     void reproducirGolpe(int golpesConsecutivos);
     void reproducirRisa();
+    void sincronizarObstaculos(const QVector<Obstaculo>& obstaculos);
+    void sincronizarRecolectables(const QVector<RecolectableNivel2>& items);
 
     QPointF aEscena(const QPointF& logico) const;
     QPixmap tira(const Animacion& animacion);
@@ -109,4 +112,6 @@ private:
     SpriteAnimado* carroItem = nullptr;
     SpriteAnimado* policiaItem = nullptr;
     QVector<SpriteAnimado*> obstaculosItems;
+    QVector<SpriteAnimado*> recolectablesN2Items;
+    QGraphicsEllipseItem* escudoItem = nullptr;
 };

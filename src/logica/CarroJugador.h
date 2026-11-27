@@ -6,12 +6,14 @@ class CarroJugador {
 public:
     CarroJugador();
 
-    void acelerar(double cantidad);
-    void frenar(double cantidad);
-    void girar(double direccion);
+    void cambiarCarril(double direccion);    // -1 sube, +1 baja, 0 = suelta la tecla
     void recibirDanio(int dano);
     void perderBotin(int cantidad);
     void activarDerrape(double duracion);
+    void recuperarIntegridad(double cantidad);
+    void activarEscudo(double duracion);
+    bool estaProtegido() const;
+    double obtenerTiempoEscudo() const;
     void rebotar();
     void detener();
     void actualizar(double deltaTiempo);
@@ -35,4 +37,6 @@ private:
     double muAceite;
     double coeficienteRebote;
     double tiempoDerrapeRestante;
+    bool protegido;
+    double tiempoEscudoRestante;
 };

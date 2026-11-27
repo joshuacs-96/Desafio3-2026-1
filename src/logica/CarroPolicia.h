@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include <QPointF>
@@ -6,27 +7,39 @@ class CarroJugador;
 
 class CarroPolicia {
 public:
-    CarroPolicia(const QPointF& posicionInicial,
-                 double radioSensor,
-                 double tiempoMaximoCerca);
+    CarroPolicia();
 
-    void actualizar(const CarroJugador& carroJugador, double deltaTiempo);
-    void moverVerticalmente(double desplazamiento);
-    void moverHorizontalmente(double desplazamiento);
-    void establecerPosicion(const QPointF& nuevaPosicion);
-    void reiniciarTiempoCerca();
-    void configurarSensor(double nuevoRadio, double nuevoTiempoMaximo);
+    void configurar(bool activo, double radioSensor, double tiempoMaximoCerca,
+                    double velocidadX, double pausaEntrePasadas);
+    void reiniciar();
+    void actualizar(const CarroJugador& jugador, double deltaTiempo);
+    void registrarGolpe();
 
+    bool estaActivo() const;
+    bool estaEnPantalla() const;
+    bool estaCercaDelJugador() const;
+    bool debeGolpear() const;
     QPointF obtenerPosicion() const;
     double obtenerRadioSensor() const;
     double obtenerTiempoCerca() const;
-    bool estaCercaDelJugador() const;
-    bool superoTiempoCerca() const;
+    void activarEmbestida();
 
 private:
+    void aparecer(const CarroJugador& jugador);
+
+    bool embistiendo;
     QPointF posicion;
+    bool activo;
+    bool enPantalla;
+    bool yaGolpeo;
+    bool cercaDelJugador;
+    bool retrocediendo;
+
     double radioSensor;
     double tiempoMaximoCerca;
     double tiempoCerca;
-    bool cercaDelJugador;
+    double velocidadX;
+    double velocidadLateral;
+    double pausaEntrePasadas;
+    double tiempoEspera;
 };
